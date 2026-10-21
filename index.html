@@ -1,0 +1,2812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-title" content="Mevazin" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <title>Mevazin</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --danger: #f87171;
+      --ok: #4ade80;
+      --work: #f97316;
+      --rest: #22d3ee;
+      --prayer: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    }
+    h1 { font-size: 1.25rem; margin: 0; font-weight: 650; }
+    .app-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+    .veli-badge {
+      flex-shrink: 0; font-size: 0.82rem; font-weight: 650; white-space: nowrap;
+      background: #1e1b4b; color: var(--prayer); border: 1px solid #5b21b6;
+      border-radius: 999px; padding: 6px 12px; font-variant-numeric: tabular-nums;
+    }
+    .veli-badge .veli-num { color: var(--text); margin-left: 4px; }
+    button.veli-badge { cursor: pointer; font-family: inherit; }
+    dialog.sheet {
+      border: 1px solid #334155; border-radius: 20px; background: var(--card); color: var(--text);
+      padding: 20px 16px 16px; width: min(420px, calc(100vw - 32px));
+    }
+    dialog.sheet::backdrop { background: rgba(2, 6, 23, 0.7); }
+    dialog.sheet h2 { color: var(--text); }
+    dialog.sheet label { display: block; font-size: 0.8rem; color: var(--muted); margin-top: 12px; }
+    dialog.sheet input {
+      display: block; width: 100%; margin-top: 6px; border: 1px solid #334155; background: var(--bg);
+      color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 16px;
+    }
+    dialog.sheet .sheet-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 16px; }
+    dialog.sheet .sheet-step[hidden] { display: none; }
+    button.danger {
+      border: 0; border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 600;
+      background: var(--danger); color: #0f172a; cursor: pointer;
+    }
+    h2 { font-size: 0.95rem; margin: 0 0 10px; font-weight: 600; color: var(--muted); }
+    .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+    .tabs button {
+      flex: 1; border: 1px solid #334155; background: var(--card); color: var(--muted);
+      border-radius: 12px; padding: 10px 6px; font-weight: 600; font-size: 13px; cursor: pointer;
+    }
+    .tabs button.active { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+    @media (max-width: 379px) { .tabs { display: grid; grid-template-columns: repeat(3, 1fr); } }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    #yolFrame { display: block; width: 100%; height: calc(100dvh - 150px); min-height: 480px; border: 0; border-radius: 12px; background: transparent; }
+    .row { display: flex; gap: 8px; margin-bottom: 16px; }
+    input[type="text"], input[type="number"], select {
+      flex: 1; border: 1px solid #334155; background: var(--card); color: var(--text);
+      border-radius: 12px; padding: 12px 14px; font-size: 16px; outline: none; width: 100%;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    button.primary {
+      border: 0; border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 600;
+      background: var(--accent); color: #0f172a; cursor: pointer;
+    }
+    button.ghost { background: transparent; border: 0; color: var(--muted); padding: 8px; cursor: pointer; }
+    button.secondary {
+      border: 1px solid #334155; background: var(--card); color: var(--text);
+      border-radius: 12px; padding: 12px 14px; font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+    ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    li {
+      display: flex; align-items: center; gap: 10px; background: var(--card);
+      border-radius: 14px; padding: 12px;
+    }
+    li.done span { color: var(--muted); text-decoration: line-through; }
+    li.prayer-item { border-left: 3px solid var(--prayer); }
+    li.habit-item { border-left: 3px solid #fbbf24; }
+    li span { flex: 1; word-break: break-word; }
+    .sub { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .check {
+      width: 22px; height: 22px; border-radius: 999px; border: 2px solid var(--muted);
+      background: transparent; padding: 0; flex-shrink: 0; cursor: pointer;
+    }
+    li.done .check { border-color: var(--ok); background: var(--ok); }
+    .del { color: var(--danger); font-size: 18px; line-height: 1; }
+    .empty { color: var(--muted); text-align: center; padding: 32px 8px; display: block; }
+    .hint { color: var(--muted); font-size: 0.85rem; margin-top: 16px; text-align: center; }
+    .timer-card, .prayer-card {
+      background: var(--card); border-radius: 20px; padding: 20px 16px 16px; text-align: center;
+    }
+    .phase { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+    .phase.work { color: var(--work); }
+    .phase.rest { color: var(--rest); }
+    .phase.ready, .phase.done { color: var(--muted); }
+    .clock { font-size: 3.4rem; font-variant-numeric: tabular-nums; font-weight: 700; line-height: 1; margin: 8px 0 12px; }
+    .meta { color: var(--muted); margin-bottom: 16px; font-size: 0.95rem; }
+    .controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .controls button { min-width: 100px; }
+    .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .settings label {
+      display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; color: var(--muted); text-align: left;
+    }
+    .link-task { margin-top: 16px; text-align: left; }
+    .prayer-list { text-align: left; margin-top: 12px; }
+    .prayer-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0; border-bottom: 1px solid #334155; font-size: 1rem;
+    }
+    .prayer-row:last-child { border-bottom: 0; }
+    .prayer-row .name { font-weight: 600; }
+    .prayer-row .time { font-variant-numeric: tabular-nums; color: var(--prayer); font-weight: 650; }
+    .prayer-row.next { background: #1e1b4b; margin: 0 -12px; padding: 10px 12px; border-radius: 10px; border: 0; }
+    .status { color: var(--muted); font-size: 0.85rem; margin: 8px 0 12px; min-height: 1.2em; }
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      text-align: left; margin-top: 14px; font-size: 0.9rem;
+    }
+    .toggle-row input { width: auto; accent-color: var(--accent); }
+    body.phase-work { background: #1a1209; }
+    body.phase-rest { background: #0a1a1f; }
+
+    .arch-day { margin-bottom: 14px; }
+    .arch-day h3 { font-size: 0.9rem; color: var(--muted); margin: 0 0 8px; }
+    .arch-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px; border-radius: 12px; margin-bottom: 6px;
+      background: #0f172a; border-left: 4px solid var(--muted);
+    }
+    .arch-item.on-time { border-left-color: var(--ok); }
+    .arch-item.late { border-left-color: #fb923c; }
+    .arch-item.missed { border-left-color: var(--danger); }
+    .arch-item .label { font-weight: 600; }
+    .arch-item .meta { font-size: 0.75rem; color: var(--muted); }
+
+    .qada-box {
+      margin-top: 16px; padding: 14px 12px; border-radius: 14px;
+      background: #0f172a; border: 1px solid #334155;
+    }
+    .qada-box h3 { font-size: 0.95rem; margin: 0 0 6px; color: var(--text); font-weight: 650; }
+    .qada-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0;
+    }
+    .qada-btn {
+      border: 1px solid #475569; background: var(--card); color: var(--text);
+      border-radius: 12px; padding: 12px 8px; cursor: pointer; font-weight: 600;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .qada-btn:active { border-color: var(--accent); }
+    .qada-btn .qname { font-size: 0.85rem; }
+    .qada-btn .qcount {
+      font-size: 1.1rem; font-variant-numeric: tabular-nums; color: #fb923c; min-height: 1.2em;
+    }
+    .qada-btn .qrakat { font-size: 0.7rem; color: var(--muted); font-weight: 500; }
+    .qada-btn.has-count { border-color: #fb923c; background: #1c1917; }
+    .qada-summary { font-size: 0.85rem; color: var(--muted); margin: 8px 0 12px; }
+    .qada-summary strong { color: var(--text); }
+
+
+    .auth-bar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      background: var(--card); border-radius: 14px; padding: 12px 14px;
+      margin-bottom: 14px; border: 1px solid #334155;
+    }
+    .auth-bar .auth-info { flex: 1; min-width: 160px; }
+    .auth-bar .auth-email { display: block; font-weight: 600; font-size: 0.9rem; }
+    .auth-bar .auth-hint { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 2px; line-height: 1.35; }
+    .auth-bar .auth-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .auth-bar #signInGoogleBtn { white-space: nowrap; }
+    .auth-bar .auth-status-line { width: 100%; font-size: 0.8rem; color: var(--muted); min-height: 0; margin: 0; }
+    .auth-bar .auth-status-line.err { color: var(--danger); }
+    .auth-bar .auth-status-line.ok { color: var(--ok); }
+  </style>
+</head>
+<body>
+  <div class="app-header">
+    <h1>Mevazin</h1>
+    <button type="button" class="veli-badge" id="veliBadge" title="Mevazin points" aria-haspopup="dialog">Mevazin<span class="veli-num" id="veliTotal">0</span></button>
+  </div>
+  <dialog class="sheet" id="veliSheet" aria-labelledby="veliSheetTitle">
+    <div class="sheet-step" id="veliStepInfo">
+      <h2 id="veliSheetTitle">Mevazin points: <span id="veliSheetTotal">0</span></h2>
+      <p class="status" style="text-align:left">Start fresh to begin logging again as if you just signed in. Your Mevazin points, archive and salah ledger go back to zero; your todos and prayer settings stay.</p>
+      <div class="sheet-actions">
+        <button type="button" class="ghost" id="veliCloseBtn">Close</button>
+        <button type="button" class="secondary" id="veliResetBtn">Reset &amp; start fresh</button>
+      </div>
+    </div>
+    <div class="sheet-step" id="veliStepConfirm" hidden>
+      <h2>Reset everything?</h2>
+      <p class="status" style="text-align:left">This permanently clears your Mevazin points, prayer archive and salah ledger (birthday, counters and qada) on this device<span id="veliResetCloudNote"> and in your account</span>. It can’t be undone.</p>
+      <div class="sheet-actions">
+        <button type="button" class="ghost" id="veliCancelResetBtn">Cancel</button>
+        <button type="button" class="danger" id="veliConfirmResetBtn">Yes, reset</button>
+      </div>
+    </div>
+    <form class="sheet-step" id="veliStepOnboard" hidden>
+      <h2>Welcome back</h2>
+      <p class="status" style="text-align:left">A couple of details so the ledger can count from the right day. You can change them later in the Ledger tab.</p>
+      <label>Your birthdate
+        <input id="onboardBday" type="date" required />
+      </label>
+      <label>Year you reached puberty
+        <input id="onboardPubertyYear" type="number" inputmode="numeric" min="1900" max="2100" step="1" placeholder="e.g. 2008" required />
+      </label>
+      <label>Started praying regularly (month–year, optional)
+        <input id="onboardStartedPraying" type="month" />
+      </label>
+      <p class="status" id="onboardHint" style="text-align:left;margin-top:10px"></p>
+      <div class="sheet-actions">
+        <button type="button" class="ghost" id="onboardSkipBtn">Later</button>
+        <button type="submit" class="primary">Start logging</button>
+      </div>
+    </form>
+  </dialog>
+  <div class="auth-bar" id="authBar">
+    <div class="auth-info">
+      <span id="authEmail" class="auth-email" hidden></span>
+      <span id="authHint" class="auth-hint">Without login, data stays on this device. Sign in to sync it to your account across devices.</span>
+    </div>
+    <div class="auth-actions">
+      <button type="button" class="secondary" id="signInGoogleBtn">Sign in with Google</button>
+      <button type="button" class="ghost" id="signOutBtn" hidden>Sign out</button>
+    </div>
+    <p id="authStatus" class="auth-status-line" aria-live="polite"></p>
+  </div>
+
+  <div class="tabs">
+    <button type="button" id="tab-todo" class="active">Todos</button>
+    <button type="button" id="tab-tabata">Tabata</button>
+    <button type="button" id="tab-prayers">Prayers</button>
+    <button type="button" id="tab-ledger">Ledger</button>
+    <button type="button" id="tab-archive">Archive</button>
+    <button type="button" id="tab-yol">Yol</button>
+  </div>
+
+  <section id="panel-todo" class="panel active">
+    <form class="row" id="form">
+      <input id="input" type="text" placeholder="Add a task" autocomplete="off" enterkeyhint="done" />
+      <button class="primary" type="submit">Add</button>
+    </form>
+    <ul id="list"></ul>
+  </section>
+
+  <section id="panel-tabata" class="panel">
+    <div class="timer-card">
+      <div id="phase" class="phase ready">Ready</div>
+      <div id="clock" class="clock">25:00</div>
+      <div id="meta" class="meta">Round 0 / 4</div>
+      <div class="controls">
+        <button type="button" class="primary" id="startBtn">Start</button>
+        <button type="button" class="secondary" id="pauseBtn">Pause</button>
+        <button type="button" class="secondary" id="resetBtn">Reset</button>
+      </div>
+      <div class="settings">
+        <label>Work (min)<input id="workMin" type="number" min="1" max="180" step="1" value="25" /></label>
+        <label>Rest (min)<input id="restMin" type="number" min="0" max="60" step="1" value="5" /></label>
+        <label>Rounds<input id="rounds" type="number" min="1" max="40" value="4" /></label>
+        <label>Prep (min)<input id="prepMin" type="number" min="0" max="10" step="1" value="0" /></label>
+      </div>
+      <div class="link-task">
+        <h2>Focus task (optional)</h2>
+        <select id="focusTask"><option value="">— none —</option></select>
+      </div>
+    </div>
+    <p class="hint">Beeps on phase change when sound is allowed.</p>
+  </section>
+
+  <section id="panel-prayers" class="panel">
+    <div class="prayer-card">
+      <h2 style="color:var(--text)">Today’s athan</h2>
+      <div id="prayerStatus" class="status">Finding your location…</div>
+      <div class="controls" style="margin-bottom:8px">
+        <button type="button" class="primary" id="locateBtn">Use my location</button>
+        <button type="button" class="secondary" id="istanbulBtn">Use Istanbul</button>
+        <button type="button" class="secondary" id="refreshPrayersBtn">Refresh</button>
+        <button type="button" class="secondary" id="clearSalahBtn">Clear salah todos</button>
+      </div>
+      <div class="toggle-row">
+        <span>Add salah at athan; remove when checked off</span>
+        <input type="checkbox" id="autoPrayerTodos" checked />
+      </div>
+      <div class="toggle-row">
+        <span>Notify at athan (if browser allows)</span>
+        <input type="checkbox" id="athanNotify" />
+      </div>
+      <label style="display:block;text-align:left;margin-top:12px;font-size:0.8rem;color:var(--muted)">
+        Calculation method
+        <select id="prayerMethod" style="margin-top:6px">
+          <option value="13">Turkey (Diyanet)</option>
+          <option value="3">Muslim World League</option>
+          <option value="2">ISNA</option>
+          <option value="4">Umm al-Qura</option>
+          <option value="5">Egyptian</option>
+          <option value="1">Karachi</option>
+        </select>
+      </label>
+      <div id="prayerList" class="prayer-list"></div>
+    </div>
+    <p class="hint">Times from Aladhan API using your GPS. On iPhone, athan alerts need the app on your Home Screen (Share → Add to Home Screen), opened from there. Alerts show while the app is open or in the background; they can't arrive once iOS has closed it.</p>
+  </section>
+
+
+  <section id="panel-ledger" class="panel">
+    <div class="prayer-card" style="text-align:left">
+      <h2 style="color:var(--text)">Salah ledger</h2>
+      <p class="status" id="ledgerHint">Enter birthday, accountability start, and optionally when you started praying (month–year). One day = 20 rakats (Fajr 2 + Dhuhr 4 + Asr 4 + Maghrib 3 + Isha 4 + Witr 3). Emphasized sunnah are not qada.</p>
+      <label style="display:block;font-size:0.8rem;color:var(--muted);margin-top:10px">Birthday
+        <input id="bday" type="date" style="margin-top:6px" />
+      </label>
+      <label style="display:block;font-size:0.8rem;color:var(--muted);margin-top:10px">Puberty / accountability start
+        <input id="puberty" type="date" style="margin-top:6px" />
+      </label>
+      <label style="display:block;font-size:0.8rem;color:var(--muted);margin-top:10px">Or age at puberty (years)
+        <input id="pubertyAge" type="number" min="9" max="18" step="1" value="15" style="margin-top:6px" />
+      </label>
+      <label style="display:block;font-size:0.8rem;color:var(--muted);margin-top:10px">Started praying since (month–year)
+        <input id="startedPraying" type="month" style="margin-top:6px" />
+      </label>
+      <p class="hint" style="text-align:left;margin-top:6px" id="startedPrayingHint">Optional. Days from accountability until this month = historical red debt. Days from this month until your first Save &amp; calculate = assumed already prayed (credited). Live misses count from the day after.</p>
+      <p class="hint" style="text-align:left;margin-top:4px" id="accountabilityHint"></p>
+      <div class="controls" style="margin-top:14px;justify-content:flex-start">
+        <button type="button" class="primary" id="saveLedgerBtn">Save &amp; calculate</button>
+        <button type="button" class="secondary" id="restartTrackingBtn" hidden>Restart tracking</button>
+      </div>
+      <div id="ledgerStats" style="margin-top:16px;display:none">
+        <div class="prayer-row" style="border-left:3px solid var(--prayer);padding-left:8px"><span class="name">Mevazin points</span><span class="time" id="statVeli" style="color:var(--prayer)">0</span></div>
+        <div class="prayer-row"><span class="name">Days since accountability</span><span class="time" id="statDays">0</span></div>
+        <div class="prayer-row"><span class="name">Total owed since accountability (20×days, fard+witr)</span><span class="time" id="statOwed">0</span></div>
+        <div class="prayer-row" style="border-left:3px solid var(--danger);padding-left:8px"><span class="name">Historical debt before started praying (red)</span><span class="time" id="statHistorical" style="color:var(--danger)">0</span></div>
+        <div class="prayer-row" style="border-left:3px solid var(--ok);padding-left:8px"><span class="name">Assumed covered since started praying (until Calculate)</span><span class="time" id="statAssumed" style="color:var(--ok)">0</span></div>
+        <div class="prayer-row"><span class="name">Days assumed covered</span><span class="time" id="statAssumedDays">0</span></div>
+        <div class="prayer-row"><span class="name">Live tracking days (after Calculate)</span><span class="time" id="statActiveDays">0</span></div>
+        <div class="prayer-row" style="border-left:3px solid var(--ok);padding-left:8px"><span class="name">On time rakats (green)</span><span class="time" id="statGreen" style="color:var(--ok)">0</span></div>
+        <div class="prayer-row" style="border-left:3px solid #fb923c;padding-left:8px"><span class="name">Made-up rakats (orange)</span><span class="time" id="statOrange" style="color:#fb923c">0</span></div>
+        <div class="prayer-row" style="border-left:3px solid var(--danger);padding-left:8px"><span class="name">Missed / still owed rakats (red)</span><span class="time" id="statRed" style="color:var(--danger)">0</span></div>
+        <p class="hint" style="text-align:left" id="trackingStartHint"></p>
+        <p class="hint" style="text-align:left">Check a salah todo = that prayer’s farz rakats on time. Register qada to pay down red debt, including historical debt. Missing count for the active period starts only after Save &amp; calculate. One day of qada = 20 rakats including witr; sunnah not counted.</p>
+
+        <div class="qada-box" id="qadaBox">
+          <h3>Qada (make up missed days)</h3>
+          <p class="hint" style="text-align:left;margin:0 0 4px">Tap each prayer for one day of qada. First tap = 1×, second = 2×, …. One day = 20 rakats including witr. Sunnah is not qada.</p>
+          <div class="qada-grid" id="qadaGrid"></div>
+          <p class="qada-summary" id="qadaSummary">Pending: 0 rakats · Register pays oldest red debt first.</p>
+          <div class="controls" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">
+            <button type="button" class="primary" id="registerQadaBtn">Register</button>
+            <button type="button" class="secondary" id="clearQadaPendingBtn">Clear taps</button>
+          </div>
+          <div class="prayer-row" style="margin-top:12px;border-left:3px solid #fb923c;padding-left:8px">
+            <span class="name">Qada registered (in made-up / orange)</span>
+            <span class="time" id="statQadaRegistered" style="color:#fb923c">0</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <p class="hint">This is a personal tracker, not a fatwa. Default puberty age is editable; set the exact accountability date and “started praying since” month if you know them.</p>
+  </section>
+
+
+  <section id="panel-archive" class="panel">
+    <div class="prayer-card" style="text-align:left">
+      <h2 style="color:var(--text)">Archive</h2>
+      <p class="status" id="archiveHint">Completed salah, grouped by due date.</p>
+      <div class="legend" style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.8rem;margin:8px 0 12px;color:var(--muted)">
+        <span style="color:var(--ok)">● On time</span>
+        <span style="color:#fb923c">● Made up / late</span>
+        <span style="color:var(--danger)">● Missed</span>
+      </div>
+      <div id="archiveList"></div>
+      <div class="controls" style="margin-top:12px;justify-content:flex-start">
+        <button type="button" class="secondary" id="clearArchiveBtn">Clear archive</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="panel-yol" class="panel">
+    <iframe id="yolFrame" title="Kurb Yolu" data-src="yol.html?embed=1"></iframe>
+  </section>
+
+  <p class="hint">Without login, data stays on this device. With login, it syncs to your account. Prayer times still come from Aladhan.</p>
+
+  <script>
+    const KEY = "todo-app-v3";
+    const PRAYER_KEY = "todo-app-prayer-settings-v1";
+    const PRAYER_NAMES = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+    // Witr is its own checkable item (wajib in the Hanafi school, part of the 20/day ledger).
+    const SALAH_RAKATS = { Fajr: 2, Dhuhr: 4, Asr: 4, Maghrib: 3, Isha: 4, Witr: 3 };
+    const listEl = document.getElementById("list");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+    const focusSel = document.getElementById("focusTask");
+
+
+    function parseDoneMapJson(raw) {
+      try {
+        const o = typeof raw === "string" ? JSON.parse(raw || "{}") : (raw || {});
+        return o && typeof o === "object" && !Array.isArray(o) ? o : {};
+      } catch { return {}; }
+    }
+    /** Union date → id[] maps so cloud never drops local prayer/habit done flags. */
+    function mergeDoneMaps(localRaw, cloudRaw) {
+      const local = parseDoneMapJson(localRaw);
+      const cloud = parseDoneMapJson(cloudRaw);
+      const out = {};
+      for (const src of [local, cloud]) {
+        for (const [date, arr] of Object.entries(src)) {
+          const list = Array.isArray(arr) ? arr : [];
+          out[date] = [...new Set([...(out[date] || []), ...list])];
+        }
+      }
+      return out;
+    }
+    /**
+     * Local open (unchecked) auto-todos beat stale cloud done flags.
+     * Empty/stale cloud must not mark a salah/habit done if this device still shows it open.
+     */
+    function stripDoneIdsForOpenItems(doneMap, openByDate) {
+      const out = {};
+      for (const [date, arr] of Object.entries(doneMap || {})) {
+        const open = openByDate && openByDate[date] ? openByDate[date] : null;
+        const list = Array.isArray(arr) ? arr : [];
+        out[date] = open ? list.filter(id => !open.has(id)) : [...list];
+      }
+      return out;
+    }
+    function collectOpenAutoIds(items) {
+      const prayer = {};
+      const habit = {};
+      for (const it of items || []) {
+        if (it.done) continue;
+        if (it.kind === "prayer" && it.prayer && it.date) {
+          prayer[it.date] = prayer[it.date] || new Set();
+          prayer[it.date].add(it.prayer);
+        }
+        if (it.kind === "habit" && it.habitId && it.date) {
+          habit[it.date] = habit[it.date] || new Set();
+          habit[it.date].add(it.habitId);
+        }
+      }
+      return { prayer, habit };
+    }
+    /** Stable Tabata focus key — survives inject reordering list indices. */
+    function todoFocusKey(it) {
+      if (!it) return "";
+      if (it.kind === "prayer" && it.prayer && it.date) return "prayer:" + it.date + ":" + it.prayer;
+      if (it.kind === "habit" && it.habitId && it.date) return "habit:" + it.date + ":" + it.habitId;
+      if (it.id) return "todo:" + it.id;
+      return "todo:" + (it.text || "");
+    }
+    function findTodoByFocusKey(items, key) {
+      if (!key) return null;
+      for (const it of items || []) {
+        if (todoFocusKey(it) === key) return it;
+      }
+      return null;
+    }
+
+    function recordDoneId(doneKey, date, id) {
+      if (!date || !id) return;
+      const map = parseDoneMapJson(localStorage.getItem(doneKey));
+      map[date] = map[date] || [];
+      if (!map[date].includes(id)) map[date].push(id);
+      localStorage.setItem(doneKey, JSON.stringify(map));
+    }
+    /** Drop auto todos already marked done for their date (after cloud restore). Never removes undoned salah/habits. */
+    function pruneCompletedAutoTodos() {
+      const prayerDone = parseDoneMapJson(localStorage.getItem("todo-app-prayer-done-v1"));
+      const habitDone = parseDoneMapJson(localStorage.getItem("todo-app-habit-done-v1"));
+      const items = load();
+      const next = items.filter(it => {
+        if (it.kind === "prayer" && it.prayer) {
+          const d = it.date;
+          // Only prune when explicitly recorded done for that date — never on empty/stale absence of data.
+          if (d && Array.isArray(prayerDone[d]) && prayerDone[d].length && prayerDone[d].includes(it.prayer)) return false;
+        }
+        if (it.kind === "habit" && it.habitId) {
+          const d = it.date;
+          if (d && Array.isArray(habitDone[d]) && habitDone[d].length && habitDone[d].includes(it.habitId)) return false;
+        }
+        return true;
+      });
+      if (next.length !== items.length) save(next);
+      return next;
+    }
+
+    // Deleted todo keys → ISO time, synced so a delete on one device sticks on the others.
+    const DELETED_KEY = "todo-app-deleted-v1";
+    function loadDeleted() { return parseDoneMapJson(localStorage.getItem(DELETED_KEY)); }
+    function recordDeleted(it) {
+      const map = loadDeleted();
+      map[todoFocusKey(it)] = new Date().toISOString();
+      // Keep 60 days of deletions; older ones can no longer come back from a stale device.
+      const cutoff = new Date(Date.now() - 60 * 864e5).toISOString();
+      for (const k of Object.keys(map)) if (map[k] < cutoff) delete map[k];
+      localStorage.setItem(DELETED_KEY, JSON.stringify(map));
+    }
+    /** Union of two todo lists by stable key, minus deleted ones. Local copy wins for the same key. */
+    function mergeTodoLists(localItems, cloudItems, deleted) {
+      const del = deleted || {};
+      const localKeys = new Set((localItems || []).map(todoFocusKey));
+      // Items only the other device has (usually new ones) go on top, like a fresh add.
+      const cloudOnly = (cloudItems || []).filter(it => it && !localKeys.has(todoFocusKey(it)));
+      const out = [];
+      const seen = new Set();
+      for (const it of [...cloudOnly, ...(localItems || [])]) {
+        if (!it) continue;
+        const k = todoFocusKey(it);
+        if (seen.has(k) || del[k]) continue;
+        seen.add(k);
+        out.push(it);
+      }
+      return out;
+    }
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(KEY)) || []; }
+      catch { return []; }
+    }
+    function save(items) { localStorage.setItem(KEY, JSON.stringify(items)); }
+
+    function todayISO() {
+      const d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    }
+
+    function loadPrayerSettings() {
+      try {
+        return Object.assign({
+          lat: null, lon: null, method: "13",
+          autoTodos: true, notify: false,
+          lastDate: null, times: null, placeLabel: ""
+        }, JSON.parse(localStorage.getItem(PRAYER_KEY) || "{}"));
+      } catch { return { lat: null, lon: null, method: "13", autoTodos: true, notify: false, lastDate: null, times: null, placeLabel: "" }; }
+    }
+    function savePrayerSettings(s) { localStorage.setItem(PRAYER_KEY, JSON.stringify(s)); }
+
+    function fillFocus() {
+      const cur = focusSel.value;
+      focusSel.innerHTML = '<option value="">— none —</option>';
+      load().forEach((item) => {
+        if (item.done) return;
+        const opt = document.createElement("option");
+        opt.value = todoFocusKey(item);
+        opt.textContent = item.text;
+        focusSel.appendChild(opt);
+      });
+      if ([...focusSel.options].some(o => o.value === cur)) focusSel.value = cur;
+    }
+
+    function render() {
+      const items = load();
+      const frag = document.createDocumentFragment();
+      if (!items.length) {
+        const empty = document.createElement("li");
+        empty.className = "empty";
+        empty.textContent = "No tasks yet";
+        frag.appendChild(empty);
+        listEl.replaceChildren(frag);
+        fillFocus();
+        return;
+      }
+      items.forEach((item, i) => {
+        const li = document.createElement("li");
+        if (item.done) li.classList.add("done");
+        if (item.kind === "prayer") li.classList.add("prayer-item");
+        if (item.kind === "habit") li.classList.add("habit-item");
+        const check = document.createElement("button");
+        check.type = "button";
+        check.className = "check";
+        check.onclick = () => {
+          const was = items[i].done;
+          items[i].done = !was;
+          if (items[i].kind === "prayer") {
+            const r = SALAH_RAKATS[items[i].prayer] || 0;
+            const L = loadLedger();
+            if (!was && items[i].done) L.onTime = (L.onTime|0) + r;
+            if (was && !items[i].done) L.onTime = Math.max(0, (L.onTime|0) - r);
+            saveLedger(L);
+            if (!was && items[i].done) {
+              const st = completionStatus(items[i].prayer, items[i].time, new Date().toISOString(), items[i].date);
+              archivePrayer(items[i], st);
+              if (st === "late") {
+                const L2 = loadLedger();
+                L2.onTime = Math.max(0, (L2.onTime|0) - r);
+                L2.makeup = (L2.makeup|0) + r;
+                saveLedger(L2);
+              }
+              const d = items[i].date || todayISO();
+              recordDoneId("todo-app-prayer-done-v1", d, items[i].prayer);
+              items.splice(i, 1);
+            }
+          } else if (items[i].kind === "habit" && !was && items[i].done) {
+            archivePrayer({
+              prayer: items[i].habitId,
+              text: items[i].text,
+              time: items[i].time,
+              date: items[i].date
+            }, "on-time");
+            const d = items[i].date || todayISO();
+            recordDoneId("todo-app-habit-done-v1", d, items[i].habitId);
+            items.splice(i, 1);
+          }
+          save(items); render();
+        };
+        const span = document.createElement("span");
+        span.textContent = item.text;
+        if (item.kind === "prayer" && item.time) {
+          const sub = document.createElement("span");
+          sub.className = "sub";
+          sub.textContent = "Athan " + item.time;
+          span.appendChild(sub);
+        } else if (item.kind === "habit" && item.time) {
+          const sub = document.createElement("span");
+          sub.className = "sub";
+          const hs = loadPrayerSettings();
+          const boundary = item.habitId === "brush-pm" ? "Isha" : "morning";
+          const endName = item.habitId === "brush-pm" ? "Fajr" : "Dhuhr";
+          const endTime = hs.lastDate === todayISO() && hs.times && hs.times[endName]
+            ? " · until " + endName + " " + hs.times[endName] : "";
+          sub.textContent = "Due " + boundary + " " + item.time + endTime;
+          span.appendChild(sub);
+        }
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "ghost del";
+        del.textContent = "×";
+        del.onclick = () => {
+          const it = items[i];
+          // Auto todos: mark done so inject does not bounce them back (no archive/ledger/veli).
+          if (it && it.kind === "prayer" && it.prayer) {
+            recordDoneId("todo-app-prayer-done-v1", it.date || todayISO(), it.prayer);
+          } else if (it && it.kind === "habit" && it.habitId) {
+            recordDoneId("todo-app-habit-done-v1", it.date || todayISO(), it.habitId);
+          } else if (it) {
+            recordDeleted(it);
+          }
+          items.splice(i, 1); save(items); render();
+        };
+        const tabata = document.createElement("button");
+        tabata.type = "button";
+        tabata.className = "ghost";
+        tabata.textContent = "⏱";
+        tabata.onclick = () => {
+          const key = todoFocusKey(items[i]);
+          showTab("tabata");
+          fillFocus();
+          focusSel.value = key;
+        };
+        li.append(check, span, tabata, del);
+        frag.appendChild(li);
+      });
+      listEl.replaceChildren(frag);
+      fillFocus();
+    }
+
+    // Yol tab: the act you commit to today becomes a todo, ticked when you mark it done there.
+    function upsertYolActTodo(m) {
+      if (!m || typeof m.date !== "string" || typeof m.text !== "string") return;
+      const id = "yol-" + m.date;
+      const items = load();
+      const i = items.findIndex(it => it && it.id === id);
+      let changed = false;
+      if (m.commit) {
+        const text = m.text.slice(0, 300);
+        if (i < 0) {
+          if (loadDeleted()["todo:" + id]) return;
+          items.unshift({ text, done: !!m.done, id });
+          changed = true;
+        } else {
+          if (items[i].text !== text) { items[i].text = text; changed = true; }
+          if (m.done && !items[i].done) { items[i].done = true; changed = true; }
+        }
+      } else if (i >= 0 && !items[i].done) {
+        items.splice(i, 1);
+        changed = true;
+      }
+      if (changed) { save(items); render(); }
+    }
+    window.addEventListener("message", (e) => {
+      if (e.origin !== location.origin || !e.data || e.data.type !== "mevazin-yol-act") return;
+      upsertYolActTodo(e.data);
+    });
+
+    form.onsubmit = (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      const items = load();
+      items.unshift({ text, done: false, id: Date.now() + "-" + Math.random().toString(36).slice(2, 7) });
+      save(items);
+      input.value = "";
+      render();
+    };
+
+    function showTab(name) {
+      ["todo", "tabata", "prayers", "ledger", "archive", "yol"].forEach(n => {
+        document.getElementById("tab-" + n).classList.toggle("active", n === name);
+        document.getElementById("panel-" + n).classList.toggle("active", n === name);
+      });
+      document.body.classList.remove("phase-work", "phase-rest");
+      if (name === "tabata") fillFocus();
+      if (name === "prayers") syncPrayerUI();
+      if (name === "ledger") syncLedgerUI();
+      if (name === "archive") renderArchive();
+      if (name === "yol") {
+        const f = document.getElementById("yolFrame");
+        if (!f.src) f.src = f.dataset.src;
+      }
+    }
+    document.getElementById("tab-todo").onclick = () => showTab("todo");
+    document.getElementById("tab-tabata").onclick = () => showTab("tabata");
+    document.getElementById("tab-prayers").onclick = () => showTab("prayers");
+    document.getElementById("tab-ledger").onclick = () => showTab("ledger");
+    document.getElementById("tab-archive").onclick = () => showTab("archive");
+    document.getElementById("tab-yol").onclick = () => showTab("yol");
+
+    // Tabata
+    const phaseEl = document.getElementById("phase");
+    const clockEl = document.getElementById("clock");
+    const metaEl = document.getElementById("meta");
+    let timer = null, running = false, phase = "ready", remaining = 25 * 60, round = 0, totalRounds = 4;
+    // Phases run off wall-clock deadlines, so the timer stays exact when the
+    // browser throttles intervals or the phone locks.
+    let endAt = 0, catchingUp = false, audioCtx = null;
+
+    function minsInput(id, fallback) {
+      const n = Number(document.getElementById(id).value);
+      return Number.isFinite(n) && n >= 0 ? n : fallback;
+    }
+    function workSecs() { return Math.max(1, minsInput("workMin", 25)) * 60; }
+    function restSecs() { return Math.max(0, minsInput("restMin", 5)) * 60; }
+    function prepSecs() { return Math.max(0, minsInput("prepMin", 0)) * 60; }
+    function fmt(secs) {
+      const s = Math.max(0, Math.floor(secs));
+      return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+    }
+    /** One shared AudioContext, unlocked from the Start tap (iPhone blocks sound otherwise). */
+    function ensureAudio() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+      } catch (_) { audioCtx = null; }
+      return audioCtx;
+    }
+    function beep(high, delaySec) {
+      if (catchingUp) return; // no burst of beeps when catching up after the phone was locked
+      try {
+        const ctx = ensureAudio();
+        if (ctx) {
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.frequency.value = high ? 880 : 440;
+          g.gain.value = 0.08;
+          const t = ctx.currentTime + (delaySec || 0);
+          o.start(t);
+          o.stop(t + (high ? 0.18 : 0.12));
+        }
+      } catch (_) {}
+      try { if (navigator.vibrate) navigator.vibrate(high ? 200 : 100); } catch (_) {}
+    }
+    function setPhase(p, secs) {
+      phase = p;
+      remaining = secs;
+      phaseEl.className = "phase " + (p === "prep" ? "ready" : p);
+      phaseEl.textContent = p === "prep" ? "Get ready" : p === "work" ? "Work" : p === "rest" ? "Rest" : p === "done" ? "Done" : "Ready";
+      document.body.classList.remove("phase-work", "phase-rest");
+      if (p === "work") document.body.classList.add("phase-work");
+      if (p === "rest") document.body.classList.add("phase-rest");
+      clockEl.textContent = fmt(secs);
+      metaEl.textContent = focusLabel() + "Round " + round + " / " + totalRounds;
+    }
+    function focusLabel() {
+      const key = focusSel.value;
+      if (!key) return "";
+      const t = findTodoByFocusKey(load(), key);
+      return t ? ("Focus: " + t.text + " · ") : "";
+    }
+    /** Start phase p lasting secs, measured from fromTs (the previous phase's deadline). */
+    function startPhase(p, secs, fromTs) {
+      setPhase(p, secs);
+      endAt = fromTs + secs * 1000;
+    }
+    function advancePhase() {
+      const work = workSecs(), rest = restSecs();
+      totalRounds = Math.max(1, Number(document.getElementById("rounds").value) || 4);
+      const from = endAt;
+      if (phase === "prep") { round = 1; beep(true); startPhase("work", work, from); return; }
+      if (phase === "work") {
+        if (round >= totalRounds) { beep(true); beep(true, 0.25); setPhase("done", 0); stopTimer(false); return; }
+        if (rest > 0) { beep(false); startPhase("rest", rest, from); }
+        else { round += 1; beep(true); startPhase("work", work, from); }
+        return;
+      }
+      if (phase === "rest") { round += 1; beep(true); startPhase("work", work, from); }
+    }
+    function tick() {
+      if (!running) return;
+      const now = Date.now();
+      let guard = 0;
+      while (running && now >= endAt && guard++ < 1000) {
+        // Only the latest transition beeps if several passed while the screen was off.
+        catchingUp = now - endAt > 2000;
+        advancePhase();
+      }
+      catchingUp = false;
+      if (!running) return;
+      remaining = Math.max(0, Math.ceil((endAt - now) / 1000));
+      clockEl.textContent = fmt(remaining);
+      metaEl.textContent = focusLabel() + "Round " + round + " / " + totalRounds;
+    }
+    function stopTimer(resetClock) {
+      running = false;
+      clearInterval(timer);
+      timer = null;
+      document.getElementById("startBtn").textContent = "Start";
+      if (resetClock) { round = 0; setPhase("ready", workSecs()); }
+    }
+    document.getElementById("startBtn").onclick = () => {
+      if (running) return;
+      ensureAudio();
+      const work = workSecs(), prep = prepSecs();
+      totalRounds = Math.max(1, Number(document.getElementById("rounds").value) || 4);
+      if (phase === "ready" || phase === "done") {
+        round = 0;
+        if (prep > 0) setPhase("prep", prep);
+        else { round = 1; setPhase("work", work); beep(true); }
+      }
+      endAt = Date.now() + remaining * 1000;
+      running = true;
+      document.getElementById("startBtn").textContent = "Running…";
+      timer = setInterval(tick, 250);
+    };
+    document.getElementById("pauseBtn").onclick = () => {
+      if (!running) return;
+      remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+      running = false; clearInterval(timer); timer = null;
+      clockEl.textContent = fmt(remaining);
+      document.getElementById("startBtn").textContent = "Resume";
+    };
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") tick();
+    });
+    document.getElementById("resetBtn").onclick = () => stopTimer(true);
+
+    // Prayers
+    const statusEl = document.getElementById("prayerStatus");
+    const prayerListEl = document.getElementById("prayerList");
+    let notified = new Set(JSON.parse(localStorage.getItem("todo-app-athan-notified") || "[]"));
+
+    function syncPrayerUI() {
+      const s = loadPrayerSettings();
+      document.getElementById("autoPrayerTodos").checked = !!s.autoTodos;
+      document.getElementById("athanNotify").checked = !!s.notify;
+      document.getElementById("prayerMethod").value = String(s.method || "13");
+      if (s.times && s.lastDate === todayISO()) renderPrayerTimes(s);
+      else if (s.lat != null) fetchPrayerTimes();
+      else statusEl.textContent = "Tap “Use my location” to load athan times.";
+    }
+
+    function nextPrayerName(times) {
+      const now = new Date();
+      const mins = now.getHours() * 60 + now.getMinutes();
+      for (const name of PRAYER_NAMES) {
+        const [h, m] = times[name].split(":").map(Number);
+        if (h * 60 + m >= mins) return name;
+      }
+      return null;
+    }
+
+    function renderPrayerTimes(s) {
+      const times = s.times;
+      if (!times) return;
+      const next = nextPrayerName(times);
+      statusEl.textContent = (s.placeLabel || (s.lat.toFixed(2) + ", " + s.lon.toFixed(2))) +
+        " · " + (s.lastDate || todayISO()) + " · method " + s.method;
+      const rows = PRAYER_NAMES.map(name => {
+        const cls = name === next ? "prayer-row next" : "prayer-row";
+        const tag = name === next ? " · next" : "";
+        return '<div class="' + cls + '"><span class="name">' + name + tag + '</span><span class="time">' + times[name] + '</span></div>';
+      });
+      if (times.Sunrise) {
+        rows.splice(1, 0, '<div class="prayer-row"><span class="name" style="color:var(--muted)">Sunrise · Fajr ends</span><span class="time" style="color:var(--muted)">' + times.Sunrise + '</span></div>');
+      }
+      prayerListEl.innerHTML = rows.join("");
+    }
+
+    function prayerTodoExists(items, date, name) {
+      return items.some(it => it.kind === "prayer" && it.date === date && it.prayer === name);
+    }
+
+    function addPrayerTodoNow(name, time, date) {
+      const items = load();
+      if (prayerTodoExists(items, date, name)) return false;
+      items.unshift({
+        text: "Salah · " + name,
+        done: false,
+        kind: "prayer",
+        prayer: name,
+        time: time,
+        date: date
+      });
+      save(items);
+      render();
+      return true;
+    }
+
+    function toMins(hhmm) {
+      const [h, m] = (hhmm || "0:0").split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    }
+
+    function currentPrayerName(times) {
+      if (!times) return null;
+      const now = new Date();
+      const mins = now.getHours() * 60 + now.getMinutes();
+      let current = null;
+      for (const name of PRAYER_NAMES) {
+        if (mins >= toMins(times[name])) current = name;
+      }
+      return current;
+    }
+
+    /** All salah whose athan has passed today (Fajr…current), oldest first. */
+    function duePrayerNames(times, nowMins) {
+      if (!times) return [];
+      const mins = nowMins != null ? nowMins : (new Date().getHours() * 60 + new Date().getMinutes());
+      const due = [];
+      for (const name of PRAYER_NAMES) {
+        if (mins >= toMins(times[name])) due.push(name);
+      }
+      return due;
+    }
+
+    /**
+     * At each athan, ADD every due unpaid salah if missing (not only the current window).
+     * Do NOT auto-remove earlier salah — only the user checking it off clears it
+     * (done items are dropped from the list). Empty/stale cloud must not hide undoned salah.
+     */
+    function releaseDuePrayerTodos() {
+      const s = loadPrayerSettings();
+      if (!s.autoTodos || !s.times) return;
+      // ensure today times
+      const date = todayISO();
+      if (s.lastDate !== date) return;
+      const due = duePrayerNames(s.times);
+      if (due.includes("Isha")) due.push("Witr");
+      let items = load();
+      let changed = false;
+      // remove completed prayer todos (checked off = gone)
+      const filtered = items.filter(it => !(it.kind === "prayer" && it.done));
+      if (filtered.length !== items.length) changed = true;
+      items = filtered;
+      const doneMap = parseDoneMapJson(localStorage.getItem("todo-app-prayer-done-v1"));
+      const doneToday = new Set(Array.isArray(doneMap[date]) ? doneMap[date] : []);
+      // Add due unpaid prayers newest-first so current ends up at top after unshifts
+      for (let i = due.length - 1; i >= 0; i--) {
+        const name = due[i];
+        if (prayerTodoExists(items, date, name) || doneToday.has(name)) continue;
+        items.unshift({
+          text: "Salah · " + name,
+          done: false,
+          kind: "prayer",
+          prayer: name,
+          time: name === "Witr" ? s.times.Isha : s.times[name],
+          date: date
+        });
+        changed = true;
+      }
+      // Keep yesterday unchecked Isha until checked; only save/render when something changed
+      if (changed) {
+        save(items);
+        render();
+      }
+    }
+
+    function upsertPrayerTodos(times, date) {
+      releaseDuePrayerTodos();
+    }
+
+    async function fetchPrayerTimes(opts) {
+      const quiet = !!(opts && opts.quiet);
+      const s = loadPrayerSettings();
+      if (s.lat == null || s.lon == null) {
+        if (!quiet) statusEl.textContent = "Location needed.";
+        return;
+      }
+      const hadCache = !!(s.times && s.lastDate === todayISO());
+      if (!quiet || !hadCache) statusEl.textContent = "Loading prayer times…";
+      const method = document.getElementById("prayerMethod").value || s.method || "13";
+      const url = "https://api.aladhan.com/v1/timings?latitude=" + s.lat +
+        "&longitude=" + s.lon + "&method=" + method;
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data || data.code !== 200) throw new Error("API error");
+        const t = data.data.timings;
+        const times = {};
+        PRAYER_NAMES.forEach(n => { times[n] = (t[n] || "").split(" ")[0]; });
+        // Sunrise ends the Fajr window.
+        if (t.Sunrise) times.Sunrise = String(t.Sunrise).split(" ")[0];
+        const meta = data.data.meta || {};
+        const prevTimes = hadCache ? JSON.stringify(s.times) : null;
+        const nextTimes = JSON.stringify(times);
+        const dateChanged = s.lastDate !== todayISO();
+        const timesChanged = prevTimes !== nextTimes;
+        s.method = method;
+        s.times = times;
+        s.lastDate = todayISO();
+        s.placeLabel = meta.timezone || s.placeLabel || "";
+        savePrayerSettings(s);
+        renderPrayerTimes(s);
+        // Always ensure due salah from (possibly updated) times; network no longer gates first paint
+        upsertPrayerTodos(times, s.lastDate);
+        if (quiet && hadCache && !dateChanged && !timesChanged) {
+          /* background refresh matched cache — leave prayer status as renderPrayerTimes set it */
+        }
+      } catch (e) {
+        if (hadCache) {
+          // Keep showing cached times; only surface error if we had nothing
+          renderPrayerTimes(s);
+        } else {
+          statusEl.textContent = "Could not load times. Check network and try Refresh.";
+        }
+      }
+    }
+
+    function locate() {
+      statusEl.textContent = "Asking for location…";
+      if (!navigator.geolocation) {
+        statusEl.textContent = "Geolocation not supported on this browser.";
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(pos => {
+        const s = loadPrayerSettings();
+        s.lat = pos.coords.latitude;
+        s.lon = pos.coords.longitude;
+        savePrayerSettings(s);
+        fetchPrayerTimes();
+      }, err => {
+        statusEl.textContent = "Location denied or failed (" + err.code + "). Allow location for this site.";
+      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 600000 });
+    }
+
+    document.getElementById("locateBtn").onclick = locate;
+    document.getElementById("istanbulBtn").onclick = () => {
+      const s = loadPrayerSettings();
+      s.lat = 41.0082;
+      s.lon = 28.9784;
+      s.placeLabel = "Istanbul";
+      savePrayerSettings(s);
+      fetchPrayerTimes();
+    };
+    document.getElementById("refreshPrayersBtn").onclick = fetchPrayerTimes;
+    document.getElementById("clearSalahBtn").onclick = () => {
+      const items = load().filter(it => it.kind !== "prayer");
+      save(items);
+      render();
+      statusEl.textContent = "Cleared salah todos. New ones appear only at athan.";
+    };
+    document.getElementById("autoPrayerTodos").onchange = (e) => {
+      const s = loadPrayerSettings();
+      s.autoTodos = e.target.checked;
+      savePrayerSettings(s);
+      if (s.autoTodos && s.times) releaseDuePrayerTodos();
+    };
+    const canNotify = "Notification" in window;
+    document.getElementById("athanNotify").onchange = async (e) => {
+      const s = loadPrayerSettings();
+      if (e.target.checked && !canNotify) {
+        // Safari only has notifications for Home Screen apps; referencing
+        // Notification directly used to throw here.
+        e.target.checked = false;
+        s.notify = false;
+        savePrayerSettings(s);
+        statusEl.textContent = "Alerts aren't available in this browser. On iPhone: Share → Add to Home Screen, open the app from there, then turn this on.";
+        return;
+      }
+      s.notify = e.target.checked;
+      savePrayerSettings(s);
+      if (s.notify && Notification.permission === "default") {
+        await Notification.requestPermission();
+      }
+      if (s.notify && Notification.permission === "denied") {
+        statusEl.textContent = "Notifications are blocked for this site. Allow them in your browser settings.";
+      }
+    };
+    document.getElementById("prayerMethod").onchange = (e) => {
+      const s = loadPrayerSettings();
+      s.method = e.target.value;
+      savePrayerSettings(s);
+      fetchPrayerTimes();
+    };
+
+    /** Service-worker notifications work on Home Screen apps and Android, where new Notification() throws. */
+    async function showAthanNotification(title, body) {
+      try {
+        if ("serviceWorker" in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg && reg.showNotification) {
+            await reg.showNotification(title, { body, tag: title, icon: "icons/icon-192.png" });
+            return;
+          }
+        }
+        new Notification(title, { body });
+      } catch (_) {}
+    }
+
+    const ATHAN_NOTIFY_GRACE_MINS = 10;
+    function checkAthanNotify() {
+      const s = loadPrayerSettings();
+      if (!s.notify || !s.times || s.lastDate !== todayISO()) return;
+      if (!canNotify || Notification.permission !== "granted") return;
+      const now = new Date();
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      for (const name of PRAYER_NAMES) {
+        const key = s.lastDate + "|" + name;
+        const athan = toMins(s.times[name]);
+        // A window instead of the exact minute, so a throttled timer or a
+        // briefly backgrounded app still gets the alert.
+        if (nowMins >= athan && nowMins < athan + ATHAN_NOTIFY_GRACE_MINS && !notified.has(key)) {
+          notified.add(key);
+          localStorage.setItem("todo-app-athan-notified", JSON.stringify([...notified]));
+          showAthanNotification("Athan · " + name, "It's time for " + name + " (" + s.times[name] + ")");
+          beep(true);
+        }
+      }
+    }
+
+    /** Fetch the new day's times when the app stays open past midnight. */
+    let lastNewDayFetch = 0;
+    function refreshPrayerTimesIfNewDay(minGapMs) {
+      const s = loadPrayerSettings();
+      if (s.lat == null || s.lastDate === todayISO()) return;
+      if (Date.now() - lastNewDayFetch < minGapMs) return;
+      lastNewDayFetch = Date.now();
+      fetchPrayerTimes({ quiet: true });
+    }
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") refreshPrayerTimesIfNewDay(15000);
+    });
+
+    // Salah ledger (birthday → owed count)
+    const LEDGER_KEY = "todo-app-ledger-v1";
+    const QADA_ORDER = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha", "Witr"];
+    const QADA_RAKATS = { Fajr: 2, Dhuhr: 4, Asr: 4, Maghrib: 3, Isha: 4, Witr: 3 };
+    const RAKATS_PER_DAY_LEDGER = 20; // fard 17 + witr 3
+
+    function emptyQadaPending() {
+      const o = {};
+      QADA_ORDER.forEach(n => { o[n] = 0; });
+      return o;
+    }
+
+    function loadLedger() {
+      try {
+        const raw = Object.assign({
+          bday: "", puberty: "", pubertyAge: 15, startedPraying: "",
+          trackingStartedAt: "", onTime: 0, makeup: 0,
+          qadaPending: emptyQadaPending(), qadaRegistered: 0
+        }, JSON.parse(localStorage.getItem(LEDGER_KEY) || "{}"));
+        raw.qadaPending = Object.assign(emptyQadaPending(), raw.qadaPending || {});
+        raw.qadaRegistered = Math.max(0, raw.qadaRegistered|0);
+        return raw;
+      } catch {
+        return {
+          bday: "", puberty: "", pubertyAge: 15, startedPraying: "",
+          trackingStartedAt: "", onTime: 0, makeup: 0,
+          qadaPending: emptyQadaPending(), qadaRegistered: 0
+        };
+      }
+    }
+    function saveLedger(L) { localStorage.setItem(LEDGER_KEY, JSON.stringify(L)); }
+
+    function parseYMD(s) {
+      if (!s) return null;
+      const [y,m,d] = s.split("-").map(Number);
+      if (!y) return null;
+      return new Date(y, m - 1, d);
+    }
+    function toDayKey(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return y + "-" + m + "-" + day;
+    }
+    function daysBetween(a, b) {
+      const ms = 24 * 60 * 60 * 1000;
+      const a0 = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+      const b0 = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+      return Math.max(0, Math.floor((b0 - a0) / ms) + 1);
+    }
+    function accountabilityStart(L) {
+      const pub = parseYMD(L.puberty);
+      if (pub) return pub;
+      const bd = parseYMD(L.bday);
+      if (!bd) return null;
+      const age = Number(L.pubertyAge);
+      const years = (Number.isFinite(age) && age > 0) ? age : 15;
+      return new Date(bd.getFullYear() + years, bd.getMonth(), bd.getDate());
+    }
+    /** "YYYY-MM" → first day of that month, or null */
+    function parseStartedPraying(s) {
+      if (!s || !/^\d{4}-\d{2}$/.test(s)) return null;
+      const [y, m] = s.split("-").map(Number);
+      if (!y || m < 1 || m > 12) return null;
+      return new Date(y, m - 1, 1);
+    }
+    /**
+     * Formula:
+     *   historical = days(accountability → day before startedPraying) × 20
+     *   assumed    = days(startedPraying → trackingStartedAt) × 20   // credited, not owed
+     *   liveOwed   = days(day after trackingStartedAt → today) × 20
+     *   red        = historical + liveOwed − green − orange
+     * Until Save & calculate sets trackingStartedAt, assumed credits through today
+     * so the started-praying span is not treated as missed.
+     */
+    function ledgerCounts(L) {
+      const start = accountabilityStart(L);
+      if (!start) return null;
+      const today = new Date();
+      const green = Math.max(0, L.onTime|0);
+      const orange = Math.max(0, L.makeup|0);
+      const RAKATS_PER_DAY = RAKATS_PER_DAY_LEDGER;
+      if (start > today) {
+        return {
+          days: 0, owed: 0, green, orange, red: 0,
+          historical: 0, assumed: 0, assumedDays: 0,
+          activeDays: 0, activeOwed: 0, hasStartedPraying: false,
+          trackingStartedAt: L.trackingStartedAt || ""
+        };
+      }
+      const days = daysBetween(start, today);
+      const totalOwed = days * RAKATS_PER_DAY;
+      const started = parseStartedPraying(L.startedPraying);
+      const trackKey = L.trackingStartedAt || "";
+      const trackDate = parseYMD(trackKey);
+
+      // No started-praying date: previous behavior (full span owed; red = gap).
+      if (!started) {
+        const red = Math.max(0, totalOwed - green - orange);
+        return {
+          days, owed: totalOwed, green, orange, red,
+          historical: 0, assumed: 0, assumedDays: 0,
+          activeDays: days, activeOwed: totalOwed, hasStartedPraying: false,
+          trackingStartedAt: trackKey
+        };
+      }
+
+      // Historical: accountability → day before started-praying month.
+      let historicalDays = 0;
+      let prayStart = start;
+      if (start < started) {
+        const histEnd = new Date(started.getFullYear(), started.getMonth(), 0);
+        if (histEnd >= start) historicalDays = daysBetween(start, histEnd);
+        prayStart = started;
+      }
+
+      const historical = historicalDays * RAKATS_PER_DAY;
+
+      // Assumed covered: started praying → tracking start (or today if not yet calculated).
+      // Cap at today so we never credit the future.
+      let assumedEnd = today;
+      if (trackDate && trackDate < assumedEnd) assumedEnd = trackDate;
+      let assumedDays = 0;
+      if (prayStart <= assumedEnd) assumedDays = daysBetween(prayStart, assumedEnd);
+      const assumed = assumedDays * RAKATS_PER_DAY;
+
+      // Live tracking: day AFTER trackingStartedAt → today (only once Calculate was pressed).
+      let activeDays = 0;
+      if (trackDate) {
+        const liveStart = new Date(trackDate.getFullYear(), trackDate.getMonth(), trackDate.getDate() + 1);
+        if (liveStart <= today) activeDays = daysBetween(liveStart, today);
+      }
+      const activeOwed = activeDays * RAKATS_PER_DAY;
+
+      // red = historical + post-calculate misses − green − orange
+      // equivalently totalOwed − assumed − green − orange (when trackDate set / assumed through today)
+      const red = Math.max(0, historical + activeOwed - green - orange);
+      return {
+        days, owed: totalOwed, green, orange, red,
+        historical, assumed, assumedDays,
+        activeDays, activeOwed, hasStartedPraying: true,
+        trackingStartedAt: trackKey
+      };
+    }
+    function syncLedgerUI() {
+      const L = loadLedger();
+      document.getElementById("bday").value = L.bday || "";
+      document.getElementById("puberty").value = L.puberty || "";
+      const ageVal = Number(L.pubertyAge);
+      document.getElementById("pubertyAge").value = (Number.isFinite(ageVal) && ageVal > 0) ? ageVal : 15;
+      document.getElementById("startedPraying").value = L.startedPraying || "";
+      const hintEl = document.getElementById("startedPrayingHint");
+      const accHint = document.getElementById("accountabilityHint");
+      const acc = accountabilityStart(L);
+      if (acc) {
+        const via = L.puberty
+          ? "exact accountability date"
+          : ("birthday + age " + ((Number.isFinite(ageVal) && ageVal > 0) ? ageVal : 15));
+        accHint.textContent = "Accountability start: " + toDayKey(acc) + " (" + via + ").";
+      } else {
+        accHint.textContent = "Set birthday (with age at puberty) or an exact accountability date.";
+      }
+      if (!L.startedPraying) {
+        hintEl.textContent = "Not set — counting from accountability start (previous behavior). Set month–year so years before you started praying stay red historical debt; days after that until Calculate are assumed covered.";
+      } else if (!L.trackingStartedAt) {
+        hintEl.textContent = "Started praying set. Press Save & calculate to credit days from that month through today as already prayed, keep historical debt red, and start live miss tracking from tomorrow. Saving again later keeps your counters.";
+      } else {
+        hintEl.textContent = "Historical red = accountability → day before started praying. Assumed covered = started praying → " + L.trackingStartedAt + ". Live misses = after that date.";
+      }
+      document.getElementById("restartTrackingBtn").hidden = !L.trackingStartedAt;
+      const c = ledgerCounts(L);
+      const box = document.getElementById("ledgerStats");
+      if (!c) { box.style.display = "none"; return; }
+      box.style.display = "block";
+      document.getElementById("statDays").textContent = String(c.days);
+      document.getElementById("statOwed").textContent = String(c.owed);
+      document.getElementById("statHistorical").textContent = String(c.historical);
+      document.getElementById("statAssumed").textContent = String(c.assumed);
+      document.getElementById("statAssumedDays").textContent = String(c.assumedDays);
+      document.getElementById("statActiveDays").textContent = String(c.activeDays);
+      document.getElementById("statGreen").textContent = String(c.green);
+      document.getElementById("statOrange").textContent = String(c.orange);
+      document.getElementById("statRed").textContent = String(c.red);
+      const trackHint = document.getElementById("trackingStartHint");
+      if (c.hasStartedPraying && c.trackingStartedAt) {
+        trackHint.textContent = "Tracking started: " + c.trackingStartedAt +
+          ". Assumed covered " + c.assumedDays + " days (" + c.assumed +
+          " rakats). Live window: " + c.activeDays + " days.";
+      } else if (c.hasStartedPraying) {
+        trackHint.textContent = "Not yet calculated — preview credits started-praying days through today as assumed covered. Press Save & calculate to lock tracking start.";
+      } else {
+        trackHint.textContent = "";
+      }
+      if (c.red === 0) {
+        document.getElementById("ledgerHint").textContent =
+          "Ledger balanced — green + orange cover historical + live missed rakats.";
+      } else if (c.hasStartedPraying && c.historical > 0) {
+        document.getElementById("ledgerHint").textContent =
+          c.red + " rakats still owed (red, 20/day fard+witr): historical " + c.historical +
+          " + live " + c.activeOwed + " − green " + c.green + " − orange " + c.orange +
+          ". Assumed covered " + c.assumed + " not counted as missed.";
+      } else {
+        document.getElementById("ledgerHint").textContent =
+          c.red + " rakats still missed / owed (red, 20/day fard+witr).";
+      }
+      renderQadaUI(L);
+      renderVeliPoints();
+    }
+
+    function pendingQadaRakats(pending) {
+      let sum = 0;
+      QADA_ORDER.forEach(n => {
+        sum += (pending[n]|0) * (QADA_RAKATS[n] || 0);
+      });
+      return sum;
+    }
+
+    function renderQadaUI(L) {
+      const pending = Object.assign(emptyQadaPending(), (L && L.qadaPending) || {});
+      const grid = document.getElementById("qadaGrid");
+      if (!grid) return;
+      grid.innerHTML = QADA_ORDER.map(name => {
+        const n = pending[name]|0;
+        const r = QADA_RAKATS[name];
+        const cls = n > 0 ? "qada-btn has-count" : "qada-btn";
+        const countLabel = n > 0 ? (n + "×") : "—";
+        return '<button type="button" class="' + cls + '" data-qada="' + name + '">' +
+          '<span class="qname">' + name + '</span>' +
+          '<span class="qcount">' + countLabel + '</span>' +
+          '<span class="qrakat">' + r + ' rakats each</span></button>';
+      }).join("");
+      grid.querySelectorAll("[data-qada]").forEach(btn => {
+        btn.onclick = () => {
+          const name = btn.getAttribute("data-qada");
+          const cur = loadLedger();
+          cur.qadaPending = Object.assign(emptyQadaPending(), cur.qadaPending || {});
+          cur.qadaPending[name] = (cur.qadaPending[name]|0) + 1;
+          saveLedger(cur);
+          renderQadaUI(cur);
+        };
+      });
+      const sum = pendingQadaRakats(pending);
+      const daysEq = (sum / RAKATS_PER_DAY_LEDGER).toFixed(sum % RAKATS_PER_DAY_LEDGER === 0 ? 0 : 2);
+      document.getElementById("qadaSummary").innerHTML =
+        "Pending: <strong>" + sum + " rakats</strong> (~" + daysEq +
+        " day" + (sum === RAKATS_PER_DAY_LEDGER ? "" : "s") +
+        "). Register adds to made-up (orange) and pays oldest red debt first.";
+      document.getElementById("statQadaRegistered").textContent = String(L.qadaRegistered|0);
+    }
+    document.getElementById("saveLedgerBtn").onclick = () => {
+      const L = loadLedger();
+      L.bday = document.getElementById("bday").value;
+      L.puberty = document.getElementById("puberty").value;
+      const ageRaw = Number(document.getElementById("pubertyAge").value);
+      L.pubertyAge = (Number.isFinite(ageRaw) && ageRaw > 0) ? ageRaw : 15;
+      L.startedPraying = document.getElementById("startedPraying").value || "";
+      if (!L.bday && !L.puberty) {
+        document.getElementById("ledgerHint").textContent = "Enter birthday or an accountability start date.";
+        return;
+      }
+      // Saving only updates the dates; historical debt is derived from them.
+      // Counters and the tracking start are kept, so editing a birthday never
+      // erases history. The first save starts live tracking from today.
+      if (!L.trackingStartedAt) L.trackingStartedAt = todayISO();
+      saveLedger(L);
+      syncLedgerUI();
+    };
+    document.getElementById("restartTrackingBtn").onclick = () => {
+      if (!confirm("Restart tracking will reset the on-time (green) and made-up (orange) rakat counters to 0 and restart tracking from today. Days since the last start will count as already prayed. Historical debt stays. Continue?")) return;
+      const L = loadLedger();
+      L.onTime = 0;
+      L.makeup = 0;
+      L.qadaRegistered = 0;
+      L.qadaPending = emptyQadaPending();
+      L.trackingStartedAt = todayISO();
+      saveLedger(L);
+      syncLedgerUI();
+    };
+    document.getElementById("registerQadaBtn").onclick = () => {
+      const L = loadLedger();
+      L.qadaPending = Object.assign(emptyQadaPending(), L.qadaPending || {});
+      const sum = pendingQadaRakats(L.qadaPending);
+      if (sum <= 0) {
+        document.getElementById("qadaSummary").textContent =
+          "Nothing to register — tap prayers first (e.g. 1× each = 20 rakats / one day).";
+        return;
+      }
+      // Pays oldest debt first via existing formula: red = historical + live − green − orange
+      L.makeup = (L.makeup|0) + sum;
+      L.qadaRegistered = (L.qadaRegistered|0) + sum;
+      L.qadaPending = emptyQadaPending();
+      saveLedger(L);
+      syncLedgerUI();
+      document.getElementById("qadaSummary").innerHTML =
+        "Registered <strong>" + sum + " rakats</strong> into made-up (orange). Red debt reduced. Counters cleared.";
+    };
+
+    document.getElementById("clearQadaPendingBtn").onclick = () => {
+      const L = loadLedger();
+      L.qadaPending = emptyQadaPending();
+      saveLedger(L);
+      renderQadaUI(L);
+    };
+
+    // Patch todo check: prayer checked → onTime +1; unchecked → onTime -1
+    const _oldRender = null;
+
+
+    const ARCHIVE_KEY = "todo-app-archive-v1";
+    function loadArchive() {
+      try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY)) || []; }
+      catch { return []; }
+    }
+    function saveArchive(rows) { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(rows)); }
+
+    // ---- Veli points ----
+    // Salah: on-time +2; miss −1; same-day makeup +1; later makeup 0; unpaid after prayer day −9.
+    // Brush: on-time +1; missed −1. Idempotent via awarded keys (no re-award on refresh).
+    const VELI_KEY = "todo-app-veli-points-v1";
+    const SALAH_SET = new Set([...PRAYER_NAMES, "Witr"]);
+    function isBrushId(id) { return id === "brush-am" || id === "brush-pm"; }
+    function loadVeli() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(VELI_KEY) || "{}");
+        return {
+          total: raw.total|0,
+          awarded: (raw.awarded && typeof raw.awarded === "object") ? raw.awarded : {}
+        };
+      } catch {
+        return { total: 0, awarded: {} };
+      }
+    }
+    function saveVeli(V) { localStorage.setItem(VELI_KEY, JSON.stringify(V)); }
+    function awardVeli(key, delta) {
+      if (!key || !delta) return false;
+      const V = loadVeli();
+      if (Object.prototype.hasOwnProperty.call(V.awarded, key)) return false;
+      V.awarded[key] = delta;
+      V.total = (V.total|0) + delta;
+      saveVeli(V);
+      renderVeliPoints();
+      return true;
+    }
+    function renderVeliPoints() {
+      const V = loadVeli();
+      const n = V.total|0;
+      const el = document.getElementById("veliTotal");
+      if (el) el.textContent = String(n);
+      const stat = document.getElementById("statVeli");
+      if (stat) stat.textContent = String(n);
+    }
+    function isoDateFrom(isoOrDate) {
+      if (!isoOrDate) return todayISO();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(isoOrDate)) return isoOrDate;
+      try {
+        const d = new Date(isoOrDate);
+        if (isNaN(d.getTime())) return todayISO();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return y + "-" + m + "-" + day;
+      } catch { return todayISO(); }
+    }
+    function veliHas(prefixKeys) {
+      const V = loadVeli();
+      return prefixKeys.some(k => Object.prototype.hasOwnProperty.call(V.awarded, k));
+    }
+    function awardSalahMiss(date, prayer) {
+      return awardVeli("salah-miss:" + date + ":" + prayer, -1);
+    }
+    function awardSalahMakeup(date, prayer, sameDay) {
+      const key = "salah-makeup:" + date + ":" + prayer;
+      // Later makeup is 0 — still record so we don't treat as unpaid forever wrongly,
+      // and so we never double-apply. Delta 0 uses a sentinel stored via direct write.
+      if (sameDay) return awardVeli(key, 1);
+      const V = loadVeli();
+      if (Object.prototype.hasOwnProperty.call(V.awarded, key)) return false;
+      V.awarded[key] = 0;
+      saveVeli(V);
+      return true;
+    }
+    /** Scoring day for a salah: Isha and Witr run until the next Fajr, so their day ends a day later. */
+    function prayerDayOver(prayer, date, today) {
+      const d = parseYMD(date);
+      if (!d) return today > date;
+      const lastDay = (prayer === "Isha" || prayer === "Witr")
+        ? toDayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1))
+        : date;
+      return today > lastDay;
+    }
+    function awardSalahUnpaid(date, prayer) {
+      // −9 once when miss finalized after prayer day ends without makeup. Do not double with −1.
+      return awardVeli("salah-unpaid:" + date + ":" + prayer, -9);
+    }
+    function awardVeliForArchive(row) {
+      if (!row || !row.prayer) return;
+      const date = row.date || todayISO();
+      const prayer = row.prayer;
+      if (closedBeforeReset(prayer, date)) return;
+      const status = row.status || "on-time";
+      const completedDay = isoDateFrom(row.completedAt);
+
+      if (isBrushId(prayer)) {
+        if (status === "on-time") awardVeli("brush-ontime:" + date + ":" + prayer, 1);
+        else if (status === "missed") awardVeli("brush-miss:" + date + ":" + prayer, -1);
+        return;
+      }
+
+      if (!SALAH_SET.has(prayer)) return;
+
+      if (status === "on-time") {
+        awardVeli("salah-ontime:" + date + ":" + prayer, 2);
+        return;
+      }
+      if (status === "missed") {
+        awardSalahMiss(date, prayer);
+        // If the miss is already past the prayer day, finalize unpaid immediately.
+        if (prayerDayOver(prayer, date, todayISO()) && !veliHas(["salah-ontime:" + date + ":" + prayer, "salah-makeup:" + date + ":" + prayer])) {
+          awardSalahUnpaid(date, prayer);
+        }
+        return;
+      }
+      if (status === "late") {
+        // Missed the timely window (−1), then makeup: +1 same calendar day, else 0.
+        awardSalahMiss(date, prayer);
+        awardSalahMakeup(date, prayer, !prayerDayOver(prayer, date, completedDay));
+        return;
+      }
+    }
+    /**
+     * Soft miss: when a salah window has ended and the todo is still open, award −1.
+     * Does not remove the todo (user can still make it up).
+     * Day rollover: if prayer date has ended without makeup/on-time → additional −9 once.
+     */
+    function syncVeliPrayerMisses() {
+      const today = todayISO();
+      const items = load();
+
+      // Miss once the salah's window has closed (Fajr at sunrise, Isha/Witr at next Fajr).
+      const now = new Date();
+      for (const it of items) {
+        if (it.kind !== "prayer" || it.done || !SALAH_SET.has(it.prayer)) continue;
+        const date = it.date || today;
+        if (now >= salahWindowEnd(it.prayer, date)) {
+          if (closedBeforeReset(it.prayer, date)) continue;
+          awardSalahMiss(date, it.prayer);
+          // Soft miss still needs an archive row (upgraded to late/on-time on check-off).
+          archivePrayer({ prayer: it.prayer, text: it.text, time: it.time, date }, "missed");
+        }
+      }
+
+      // Finalize unpaid (−9) for any miss whose prayer day has ended without on-time/makeup
+      const V = loadVeli();
+      Object.keys(V.awarded).forEach(k => {
+        if (!k.startsWith("salah-miss:")) return;
+        const parts = k.split(":");
+        if (parts.length < 3) return;
+        const date = parts[1];
+        const prayer = parts.slice(2).join(":");
+        if (!prayerDayOver(prayer, date, today)) return; // prayer day not over yet
+        if (veliHas(["salah-ontime:" + date + ":" + prayer, "salah-makeup:" + date + ":" + prayer])) return;
+        awardSalahUnpaid(date, prayer);
+      });
+
+      // Also: prayers marked done late/on-time in doneMap shouldn't get unpaid;
+      // archive backfill handles historical awards.
+      renderVeliPoints();
+    }
+    function parseVeliAwardKey(key) {
+      if (!key || typeof key !== "string") return null;
+      const m = key.match(/^(salah-ontime|salah-miss|salah-makeup|salah-unpaid|brush-ontime|brush-miss):(\d{4}-\d{2}-\d{2}):(.+)$/);
+      if (!m) return null;
+      return { type: m[1], date: m[2], prayer: m[3] };
+    }
+    function statusFromVeliAwards(awarded, date, prayer) {
+      const a = awarded || {};
+      if (isBrushId(prayer)) {
+        if (Object.prototype.hasOwnProperty.call(a, "brush-ontime:" + date + ":" + prayer)) return "on-time";
+        if (Object.prototype.hasOwnProperty.call(a, "brush-miss:" + date + ":" + prayer)) return "missed";
+        return null;
+      }
+      if (Object.prototype.hasOwnProperty.call(a, "salah-ontime:" + date + ":" + prayer)) return "on-time";
+      if (Object.prototype.hasOwnProperty.call(a, "salah-makeup:" + date + ":" + prayer)) return "late";
+      if (Object.prototype.hasOwnProperty.call(a, "salah-miss:" + date + ":" + prayer)) return "missed";
+      return null;
+    }
+    /**
+     * Repair: Veli awards (salah/brush on-time or miss) without matching archive
+     * prayer+date get an archive row. Fixes accounts where check-off awarded Veli
+     * but archive was lost (cloud overwrite race / silent save). Safe every boot.
+     */
+    function backfillArchiveFromVeli() {
+      const V = loadVeli();
+      const awarded = V.awarded || {};
+      let rows = loadArchive();
+      let changed = false;
+      const seen = new Set();
+      const nowISO = new Date().toISOString();
+      Object.keys(awarded).forEach(key => {
+        const parsed = parseVeliAwardKey(key);
+        if (!parsed) return;
+        if (parsed.type === "salah-unpaid" || parsed.type === "salah-makeup") return;
+        const sk = archiveSemanticKey(parsed.date, parsed.prayer);
+        if (seen.has(sk)) return;
+        seen.add(sk);
+        const status = statusFromVeliAwards(awarded, parsed.date, parsed.prayer);
+        if (!status) return;
+        const existing = rows.find(r => r && archiveSemanticKey(r.date || "", r.prayer) === sk);
+        if (existing) {
+          const prevRank = ARCHIVE_STATUS_RANK[existing.status] || 0;
+          const nextRank = ARCHIVE_STATUS_RANK[status] || 0;
+          if (nextRank <= prevRank) return;
+          rows = upsertArchiveRow(rows, Object.assign({}, existing, {
+            status,
+            completedAt: existing.completedAt || (status === "on-time" ? parsed.date + "T12:00:00.000Z" : nowISO),
+            rakats: existing.rakats != null ? existing.rakats : (SALAH_RAKATS[parsed.prayer] || 0)
+          }));
+          changed = true;
+          return;
+        }
+        const label = isBrushId(parsed.prayer)
+          ? (parsed.prayer === "brush-am" ? "Brush teeth (morning)" : "Brush teeth (night)")
+          : ("Salah · " + parsed.prayer);
+        const ps = loadPrayerSettings();
+        const time = parsed.prayer === "brush-am" ? "10:00" :
+          (parsed.prayer === "brush-pm" && ps.lastDate === parsed.date && ps.times && ps.times.Isha != null
+            ? ps.times.Isha : "");
+        rows = upsertArchiveRow(rows, {
+          id: "bf-" + parsed.date + "-" + parsed.prayer + "-" + Math.random().toString(36).slice(2, 7),
+          prayer: parsed.prayer,
+          text: label,
+          time,
+          date: parsed.date,
+          completedAt: status === "on-time" ? parsed.date + "T12:00:00.000Z" : nowISO,
+          status,
+          rakats: SALAH_RAKATS[parsed.prayer] || 0
+        });
+        changed = true;
+      });
+      if (changed) saveArchive(rows);
+      return changed;
+    }
+    function backfillVeliFromArchive() {
+      // Repair archive gaps from Veli first, then award any archive rows still missing Veli.
+      try { backfillArchiveFromVeli(); } catch (e) { console.warn("archive←veli backfill failed", e); }
+      loadArchive().forEach(awardVeliForArchive);
+      syncVeliPrayerMisses();
+      renderVeliPoints();
+    }
+
+    /** Local Date for "YYYY-MM-DD" + "HH:MM", optionally shifted by whole days. */
+    function dateAt(dateISO, hhmm, addDays) {
+      const [y, m, d] = String(dateISO || todayISO()).split("-").map(Number);
+      const mins = toMins(hhmm);
+      return new Date(y, m - 1, d + (addDays || 0), Math.floor(mins / 60), mins % 60);
+    }
+    /**
+     * When a salah's on-time window closes, for the day it was due.
+     * Fajr → sunrise; Dhuhr → Asr; Asr → Maghrib; Maghrib → Isha;
+     * Isha and Witr → the next day's Fajr. Uses the cached times
+     * (they move only a minute or two a day).
+     */
+    function salahWindowEnd(prayer, date) {
+      const t = loadPrayerSettings().times;
+      if (!t) return dateAt(date, "00:00", 1);
+      if (prayer === "Isha" || prayer === "Witr") return dateAt(date, t.Fajr, 1);
+      if (prayer === "Fajr") return dateAt(date, t.Sunrise || t.Dhuhr, 0);
+      const idx = PRAYER_NAMES.indexOf(prayer);
+      if (idx >= 0 && idx < PRAYER_NAMES.length - 1) return dateAt(date, t[PRAYER_NAMES[idx + 1]], 0);
+      return dateAt(date, "00:00", 1);
+    }
+
+    /** on-time if completed before the window for that day's prayer closed, else late. */
+    function completionStatus(prayer, athanTime, completedAt, date) {
+      const done = completedAt ? new Date(completedAt) : new Date();
+      return done < salahWindowEnd(prayer, date || todayISO()) ? "on-time" : "late";
+    }
+
+    const ARCHIVE_STATUS_RANK = { missed: 1, late: 2, "on-time": 3 };
+    function archiveSemanticKey(date, prayer) {
+      return String(date || "") + "\0" + String(prayer || "");
+    }
+    /** Upsert by (date, prayer). Every check-off / miss must land an archive row. */
+    function upsertArchiveRow(rows, row) {
+      const src = Array.isArray(rows) ? rows : [];
+      if (!row || !row.prayer) return src;
+      const key = archiveSemanticKey(row.date || "", row.prayer);
+      const idx = src.findIndex(r => r && archiveSemanticKey(r.date || "", r.prayer) === key);
+      if (idx < 0) return [row].concat(src);
+      const prev = src[idx];
+      const prevRank = ARCHIVE_STATUS_RANK[prev.status] || 0;
+      const nextRank = ARCHIVE_STATUS_RANK[row.status] || 0;
+      // Same/lower rank: return original ref so soft-miss interval does not churn.
+      if (nextRank <= prevRank) return src;
+      const list = src.slice();
+      list[idx] = Object.assign({}, prev, row, { id: prev.id || row.id });
+      list.sort((a, b) => String(b.completedAt || "").localeCompare(String(a.completedAt || "")));
+      return list;
+    }
+    function archivePrayer(item, status, completedAt) {
+      if (!item || !item.prayer) return null;
+      const date = item.date || todayISO();
+      const st = status || "on-time";
+      // A window that closed before a fresh start is not logged as missed.
+      if (st === "missed" && closedBeforeReset(item.prayer, date)) return null;
+      const row = {
+        id: Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+        prayer: item.prayer,
+        text: item.text || (item.prayer.indexOf("brush") === 0 ? item.prayer : ("Salah · " + item.prayer)),
+        time: item.time || "",
+        date,
+        completedAt: completedAt || new Date().toISOString(),
+        status: st,
+        rakats: SALAH_RAKATS[item.prayer] || 0
+      };
+      try {
+        const prev = loadArchive();
+        const rows = upsertArchiveRow(prev, row);
+        if (rows !== prev) saveArchive(rows);
+      } catch (e) {
+        console.warn("archive save failed", e);
+        try {
+          const fallback = loadArchive();
+          fallback.unshift(row);
+          saveArchive(fallback);
+        } catch (e2) { console.warn("archive fallback failed", e2); }
+      }
+      try { awardVeliForArchive(row); } catch (e) { console.warn("veli award failed", e); }
+      return row;
+    }
+
+    function habitArchiveTime(prayer, date, fallback) {
+      if (prayer !== "brush-pm") return fallback || (prayer === "brush-am" ? "10:00" : "");
+      const s = loadPrayerSettings();
+      return s.lastDate === date && s.times && s.times.Isha != null
+        ? s.times.Isha : (fallback || "");
+    }
+
+    function habitArchiveMeta(row) {
+      const isNight = row.prayer === "brush-pm";
+      const isMorning = row.prayer === "brush-am";
+      if (!isNight && !isMorning) return "Due " + (row.time || "");
+      const dueName = isNight ? "Isha" : "morning";
+      const endName = isNight ? "Fajr" : "Dhuhr";
+      const dueTime = habitArchiveTime(row.prayer, row.date, row.time);
+      const s = loadPrayerSettings();
+      const endTime = s.lastDate === todayISO() && s.times && s.times[endName]
+        ? " · until " + endName + " " + s.times[endName] : "";
+      return "Due " + dueName + " " + dueTime + endTime;
+    }
+
+    function renderArchive() {
+      const rows = loadArchive();
+      const el = document.getElementById("archiveList");
+      if (!rows.length) {
+        el.innerHTML = '<p class="empty">No archived salah yet</p>';
+        document.getElementById("archiveHint").textContent = "Completed salah will appear here.";
+        return;
+      }
+      const byDate = {};
+      rows.forEach(r => {
+        byDate[r.date] = byDate[r.date] || [];
+        byDate[r.date].push(r);
+      });
+      const dates = Object.keys(byDate).sort().reverse();
+      el.innerHTML = dates.map(d => {
+        const items = byDate[d].map(r => {
+          const cls = r.status === "on-time" ? "on-time" : (r.status === "missed" ? "missed" : "late");
+          const statusColor = cls === "on-time" ? "var(--ok)" : (cls === "missed" ? "var(--danger)" : "#fb923c");
+          const when = r.completedAt ? new Date(r.completedAt).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : "";
+          var label = r.text || ("Salah · " + r.prayer);
+          var isBrush = r.prayer === "brush-am" || r.prayer === "brush-pm";
+          var metaLine = (isBrush ? habitArchiveMeta(r) : ("Athan " + (r.time || ""))) +
+            (when ? " · done " + when : "") +
+            (!isBrush && (r.rakats|0) > 0 ? (" · " + r.rakats + " rakats") : "");
+          return '<div class="arch-item ' + cls + '"><div><div class="label">' + label +
+            '</div><div class="meta">' + metaLine + '</div></div><div class="meta" style="color:' + statusColor + ';font-weight:650">' +
+            cls.replace("-", " ") + '</div></div>';
+        }).join("");
+        return '<div class="arch-day"><h3>' + d + "</h3>" + items + "</div>";
+      }).join("");
+      document.getElementById("archiveHint").textContent = rows.length + " archived · grouped by due date";
+    }
+
+    document.getElementById("clearArchiveBtn").onclick = () => {
+      if (!confirm("Clear entire archive?")) return;
+      saveArchive([]);
+      renderArchive();
+    };
+
+    // Non-makeup habits (e.g. brush teeth) — expire to archive, no makeup.
+    // Morning brush remains available from the morning window until Dhuhr;
+    // night brush starts with Isha and ends after the next day's Fajr.
+    const HABITS = [
+      { id: "brush-am", text: "Brush teeth (morning)", time: "10:00", makeup: false },
+      { id: "brush-pm", text: "Brush teeth (night)", time: null, prayerTime: "Isha", makeup: false }
+    ];
+
+    function habitExists(items, date, id) {
+      return items.some(it => it.kind === "habit" && it.date === date && it.habitId === id);
+    }
+
+    function releaseHabits() {
+      const date = todayISO();
+      const now = new Date();
+      const mins = now.getHours() * 60 + now.getMinutes();
+      let items = load();
+      let changed = false;
+      const doneKey = "todo-app-habit-done-v1";
+      let doneMap = {};
+      try { doneMap = JSON.parse(localStorage.getItem(doneKey) || "{}"); } catch (_) {}
+      const doneToday = new Set(doneMap[date] || []);
+
+      const prayerSettings = loadPrayerSettings();
+      const prayerTimes = prayerSettings.times && prayerSettings.lastDate === date
+        ? prayerSettings.times : null;
+      const prayerTimeToday = (name) =>
+        prayerTimes && prayerTimes[name] != null ? toMins(prayerTimes[name]) : null;
+      const habitScheduleTime = (h) => h.prayerTime
+        ? (prayerTimes && prayerTimes[h.prayerTime] != null ? prayerTimes[h.prayerTime] : null)
+        : h.time;
+      const habitExpiredFn = (habitId, itemDate) => {
+        const a = new Date(itemDate + "T00:00:00");
+        const b = new Date(date + "T00:00:00");
+        const age = Math.round((b - a) / (24 * 60 * 60 * 1000));
+        if (age < 0) return false;
+        if (habitId === "brush-am") {
+          if (age > 0) return true;
+          const dhuhr = prayerTimeToday("Dhuhr");
+          return dhuhr != null && mins >= dhuhr;
+        }
+        if (habitId === "brush-pm") {
+          if (age > 1) return true;
+          if (age === 1) {
+            const fajr = prayerTimeToday("Fajr");
+            return fajr != null && mins >= fajr;
+          }
+          return false;
+        }
+        return false;
+      };
+
+      for (const h of HABITS) {
+        const scheduleTime = habitScheduleTime(h);
+        // Add when due — but NEVER add an already-expired habit (avoids bounce → instant miss).
+        if (
+          scheduleTime != null &&
+          mins >= toMins(scheduleTime) &&
+          !habitExists(items, date, h.id) &&
+          !doneToday.has(h.id) &&
+          !habitExpiredFn(h.id, date)
+        ) {
+          items.unshift({
+            text: h.text,
+            done: false,
+            kind: "habit",
+            habitId: h.id,
+            makeup: false,
+            time: scheduleTime,
+            date
+          });
+          changed = true;
+        }
+      }
+
+      // Keep open current-day items aligned with the latest prayer settings so
+      // the displayed due time is Isha/Fajr-derived rather than a stale default.
+      items = items.map((it) => {
+        if (it.kind !== "habit" || it.date !== date) return it;
+        const h = HABITS.find((x) => x.id === it.habitId);
+        const scheduleTime = h && habitScheduleTime(h);
+        if (scheduleTime == null || it.time === scheduleTime) return it;
+        changed = true;
+        return Object.assign({}, it, { time: scheduleTime });
+      });
+
+      // Habit windows are tied to prayer times (see habitExpiredFn above).
+      // Morning brush ends at today's Dhuhr; night brush ends after next Fajr.
+
+      const keep = [];
+      for (const it of items) {
+        if (it.kind !== "habit" || it.done) { keep.push(it); continue; }
+        const h = HABITS.find(x => x.id === it.habitId);
+        if (!h || !habitExpiredFn(h.id, it.date)) { keep.push(it); continue; }
+        archivePrayer({
+          prayer: it.habitId,
+          text: it.text,
+          time: it.time,
+          date: it.date
+        }, "missed");
+        // Mark the habit's own date so it is not re-added after expiry.
+        doneMap[it.date] = doneMap[it.date] || [];
+        if (!doneMap[it.date].includes(it.habitId)) doneMap[it.date].push(it.habitId);
+        changed = true;
+      }
+      if (changed) {
+        localStorage.setItem(doneKey, JSON.stringify(doneMap));
+        save(keep);
+        render();
+      }
+    }
+
+
+
+    /**
+     * Instant salah/habit injection from local prayer-settings cache + habit schedule.
+     * Must NOT wait on Aladhan or cloud — used on boot and again after cloud apply.
+     */
+    function injectDueTodosFromCache() {
+      // releaseDuePrayerTodos no-ops unless autoTodos + times + lastDate===today
+      try { releaseDuePrayerTodos(); } catch (_) {}
+      try { releaseHabits(); } catch (_) {}
+    }
+
+    // ---- Fresh start (Veli points badge) ----
+    // Clears Veli points, archive and ledger so logging starts over as if just
+    // signed in. The reset time is synced: other devices drop their pre-reset
+    // copies instead of merging them back, and windows that closed before it
+    // are never scored.
+    const RESET_KEY = "todo-app-reset-v1";
+    const RESET_CLEARS = [VELI_KEY, ARCHIVE_KEY, LEDGER_KEY];
+    function autoWindowEnd(id, date) {
+      if (SALAH_SET.has(id)) return salahWindowEnd(id, date);
+      const t = loadPrayerSettings().times || {};
+      if (id === "brush-am") return dateAt(date, t.Dhuhr || "12:00", 0);
+      if (id === "brush-pm") return dateAt(date, t.Fajr || "05:00", 1);
+      return null;
+    }
+    function closedBeforeReset(id, date) {
+      const at = localStorage.getItem(RESET_KEY);
+      if (!at) return false;
+      const end = autoWindowEnd(id, date || todayISO());
+      return !!end && end <= new Date(at);
+    }
+    function resetTrackingProgress() {
+      const now = new Date();
+      // Write the reset time first so nothing below is scored as a miss.
+      localStorage.setItem(RESET_KEY, now.toISOString());
+      const prayerDoneKey = "todo-app-prayer-done-v1";
+      const habitDoneKey = "todo-app-habit-done-v1";
+      const prayerDone = parseDoneMapJson(localStorage.getItem(prayerDoneKey));
+      const habitDone = parseDoneMapJson(localStorage.getItem(habitDoneKey));
+      const mark = (map, date, id) => {
+        map[date] = map[date] || [];
+        if (!map[date].includes(id)) map[date].push(id);
+      };
+      // Drop open salah/brush todos whose window already closed; marking them
+      // done keeps them from being re-added (or merged back from the cloud).
+      const items = load().filter(it => {
+        if (it.done) return true;
+        const id = it.kind === "prayer" ? it.prayer : (it.kind === "habit" ? it.habitId : null);
+        if (!id || !it.date) return true;
+        const end = autoWindowEnd(id, it.date);
+        if (!end || now < end) return true;
+        mark(it.kind === "prayer" ? prayerDone : habitDone, it.date, id);
+        return false;
+      });
+      localStorage.setItem(prayerDoneKey, JSON.stringify(prayerDone));
+      localStorage.setItem(habitDoneKey, JSON.stringify(habitDone));
+      save(items);
+      RESET_CLEARS.forEach(k => localStorage.removeItem(k));
+      render();
+      syncLedgerUI();
+      renderArchive();
+      renderVeliPoints();
+    }
+
+    const veliSheet = document.getElementById("veliSheet");
+    function showVeliStep(id) {
+      ["veliStepInfo", "veliStepConfirm", "veliStepOnboard"].forEach(s => {
+        document.getElementById(s).hidden = s !== id;
+      });
+    }
+    function openVeliSheet(step) {
+      document.getElementById("veliSheetTotal").textContent = String(loadVeli().total | 0);
+      // Only mention the account when signed in.
+      document.getElementById("veliResetCloudNote").hidden = document.getElementById("signOutBtn").hidden;
+      showVeliStep(step || "veliStepInfo");
+      if (!veliSheet.open) veliSheet.showModal();
+    }
+    function openOnboarding() {
+      const L = loadLedger();
+      document.getElementById("onboardBday").value = L.bday || "";
+      const pub = parseYMD(L.puberty);
+      document.getElementById("onboardPubertyYear").value = pub ? String(pub.getFullYear()) : "";
+      document.getElementById("onboardStartedPraying").value = L.startedPraying || "";
+      document.getElementById("onboardHint").textContent = "";
+      openVeliSheet("veliStepOnboard");
+    }
+    document.getElementById("veliBadge").onclick = () => openVeliSheet("veliStepInfo");
+    document.getElementById("veliCloseBtn").onclick = () => veliSheet.close();
+    document.getElementById("veliResetBtn").onclick = () => showVeliStep("veliStepConfirm");
+    document.getElementById("veliCancelResetBtn").onclick = () => showVeliStep("veliStepInfo");
+    document.getElementById("veliConfirmResetBtn").onclick = () => {
+      resetTrackingProgress();
+      openOnboarding();
+    };
+    document.getElementById("onboardSkipBtn").onclick = () => veliSheet.close();
+    document.getElementById("veliStepOnboard").onsubmit = (e) => {
+      e.preventDefault();
+      const hint = document.getElementById("onboardHint");
+      const bday = document.getElementById("onboardBday").value;
+      const birth = parseYMD(bday);
+      const year = Number(document.getElementById("onboardPubertyYear").value);
+      const today = todayISO();
+      if (!birth || bday > today) { hint.textContent = "Enter a valid birthdate."; return; }
+      if (!Number.isInteger(year) || year < birth.getFullYear() + 7 || year > new Date().getFullYear()) {
+        hint.textContent = "Enter the year puberty started (at least 7 years after your birth year, not in the future).";
+        return;
+      }
+      // Only the year is known: use the birthday in that year, never later than today.
+      let puberty = year + bday.slice(4);
+      const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+      if (puberty.endsWith("-02-29") && !leap) puberty = year + "-02-28";
+      if (puberty > today) puberty = today;
+      const L = loadLedger();
+      L.bday = bday;
+      L.puberty = puberty;
+      L.pubertyAge = year - birth.getFullYear();
+      L.startedPraying = document.getElementById("onboardStartedPraying").value || "";
+      L.trackingStartedAt = today;
+      saveLedger(L);
+      syncLedgerUI();
+      veliSheet.close();
+    };
+
+    // Expose helpers for cloud sync module (refreshAppUI after applyCloudBlob)
+    window.render = render;
+    window.syncPrayerUI = syncPrayerUI;
+    window.renderPrayerTimes = renderPrayerTimes;
+    window.loadPrayerSettings = loadPrayerSettings;
+    window.loadLedger = loadLedger;
+    window.syncLedgerUI = syncLedgerUI;
+    window.renderQadaUI = renderQadaUI;
+    window.renderArchive = renderArchive;
+    window.renderVeliPoints = renderVeliPoints;
+    window.syncVeliPrayerMisses = syncVeliPrayerMisses;
+    window.backfillArchiveFromVeli = backfillArchiveFromVeli;
+    window.archivePrayer = archivePrayer;
+    window.injectDueTodosFromCache = injectDueTodosFromCache;
+    window.releaseDuePrayerTodos = releaseDuePrayerTodos;
+    window.releaseHabits = releaseHabits;
+    window.mergeDoneMaps = mergeDoneMaps;
+    window.stripDoneIdsForOpenItems = stripDoneIdsForOpenItems;
+    window.collectOpenAutoIds = collectOpenAutoIds;
+    window.duePrayerNames = duePrayerNames;
+    window.pruneCompletedAutoTodos = pruneCompletedAutoTodos;
+    window.recordDoneId = recordDoneId;
+    window.todoFocusKey = todoFocusKey;
+    window.mergeTodoLists = mergeTodoLists;
+
+    // migrate
+    if (!localStorage.getItem(KEY)) {
+      const old = localStorage.getItem("todo-app-v2") || localStorage.getItem("todo-app-v1");
+      if (old) localStorage.setItem(KEY, old);
+    }
+
+    // ---- Fast path: inject from cache THEN paint (no network) ----
+    const __t0 = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+    // Salah/habits from prayer-settings cache + schedule — immediate, before first paint
+    try { injectDueTodosFromCache(); } catch (e) { console.warn("cache inject failed", e); }
+    try { backfillVeliFromArchive(); } catch (e) { console.warn("veli backfill failed", e); }
+    render();
+    renderVeliPoints();
+    setPhase("ready", workSecs());
+    // Sync prayer toggles / cached times from localStorage only (no network yet)
+    (function paintPrayerLocal() {
+      const s = loadPrayerSettings();
+      document.getElementById("autoPrayerTodos").checked = !!s.autoTodos;
+      document.getElementById("athanNotify").checked = !!s.notify;
+      document.getElementById("prayerMethod").value = String(s.method || "13");
+      if (s.times && s.lastDate === todayISO()) renderPrayerTimes(s);
+      else if (s.lat == null) statusEl.textContent = "Tap “Use my location” to load athan times.";
+      else statusEl.textContent = "Prayer times ready when online…";
+    })();
+    const __tPaint = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+    console.info("[todo-app] local first paint in", Math.round(__tPaint - __t0), "ms (no supabase yet)");
+
+    // Defer network-heavy prayer refresh until after first paint
+    function deferAfterPaint(fn) {
+      const run = () => { try { fn(); } catch (e) { console.warn(e); } };
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(() => setTimeout(run, 0));
+      } else {
+        setTimeout(run, 0);
+      }
+    }
+    deferAfterPaint(function refreshPrayerTimesAfterPaint() {
+      const s = loadPrayerSettings();
+      if (s.lat == null) return;
+      // Background Aladhan refresh; cache already drove injection above
+      fetchPrayerTimes({ quiet: !!(s.times && s.lastDate === todayISO()) });
+    });
+    setInterval(() => {
+      refreshPrayerTimesIfNewDay(5 * 60 * 1000);
+      releaseDuePrayerTodos(); releaseHabits(); checkAthanNotify(); syncVeliPrayerMisses();
+    }, 15000);
+
+    // Installable Home Screen app (needed for iPhone notifications).
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      navigator.serviceWorker.register("sw.js").catch((e) => console.warn("service worker failed", e));
+    }
+
+    // ---- Cloud sync: load local UMD after first paint (zero block on refresh) ----
+    deferAfterPaint(function loadSupabaseAfterPaint() {
+      if (window.__todoCloudBooted) return;
+      window.__todoCloudBooted = true;
+      const src = new URL("supabase.min.js", window.location.href).href;
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = true;
+      s.onload = function () {
+        const tLoaded = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+        console.info("[todo-app] supabase UMD loaded +", Math.round(tLoaded - __t0), "ms from boot");
+        try { bootCloudSync(); }
+        catch (e) { console.error("cloud boot failed", e); }
+      };
+      s.onerror = function () {
+        console.warn("Could not load supabase.min.js — staying local-only");
+        if (document.getElementById("authStatus")) {
+          document.getElementById("authStatus").textContent = "Cloud library unavailable — data stays on this device.";
+          document.getElementById("authStatus").classList.add("err");
+        }
+      };
+      document.head.appendChild(s);
+    });
+
+    function bootCloudSync() {
+      const createClient = window.supabase && window.supabase.createClient;
+      if (typeof createClient !== "function") {
+        console.warn("supabase.createClient missing");
+        return;
+      }
+
+      const SUPABASE_URL = "https://jyvkahjkrtlvreeqdotj.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dmthaGprcnRsdnJlZXFkb3RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MDQ1OTMsImV4cCI6MjEwNjQ4MDU5M30.HPcuij-6ggjuCOmbfpH4INA0nfy66wYyoxo_EIdRdqI";
+      const APP_ID = "todo-app";
+      // Kurb Yolu (the Yol tab) keeps its notebook here; it runs in its own frame.
+      const KURB_KEY = "kurb-yolu:v1";
+      const SYNC_KEYS = [
+        "todo-app-v3",
+        "todo-app-prayer-settings-v1",
+        "todo-app-prayer-done-v1",
+        "todo-app-habit-done-v1",
+        "todo-app-athan-notified",
+        "todo-app-ledger-v1",
+        "todo-app-archive-v1",
+        "todo-app-veli-points-v1",
+        "todo-app-deleted-v1",
+        RESET_KEY,
+        KURB_KEY,
+      ];
+      // Which account this device's data belongs to, so it never lands in someone else's.
+      const OWNER_KEY = "todo-app-owner-v1";
+      const LEDGER_COUNTERS = ["onTime", "makeup", "qadaRegistered"];
+
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      });
+
+      const emailEl = document.getElementById("authEmail");
+      const hintEl = document.getElementById("authHint");
+      const statusEl = document.getElementById("authStatus");
+      const signInBtn = document.getElementById("signInGoogleBtn");
+      const signOutBtn = document.getElementById("signOutBtn");
+
+      let currentUser = null;
+      let applyingCloud = false;
+      let saveTimer = null;
+      let lastCloudUpdatedAt = null;
+      // What the cloud row held when this device last pulled or pushed it: the common
+      // ancestor for three-way merges, so a change made on another device is kept
+      // instead of being overwritten by this device's older copy.
+      let lastSyncedKeys = null;
+      let syncReady = false;
+      let signedInMutex = Promise.resolve();
+      let signedInRunning = false;
+
+      function setStatus(msg, kind) {
+        if (!statusEl) return;
+        statusEl.textContent = msg || "";
+        statusEl.classList.remove("err", "ok");
+        if (kind) statusEl.classList.add(kind);
+      }
+
+      function redirectTo() {
+        return window.location.origin + window.location.pathname;
+      }
+
+      function collectLocalBlob() {
+        const keys = {};
+        for (const k of SYNC_KEYS) {
+          const v = localStorage.getItem(k);
+          if (v != null) keys[k] = v;
+        }
+        return { version: 1, keys };
+      }
+
+      function localHasData(blob) {
+        return Object.keys(blob.keys || {}).length > 0;
+      }
+
+      function cloudHasData(data) {
+        if (!data || typeof data !== "object") return false;
+        const keys = data.keys;
+        return !!(keys && typeof keys === "object" && Object.keys(keys).length > 0);
+      }
+
+      function blobsEqual(a, b) {
+        try {
+          const ak = (a && a.keys) || {};
+          const bk = (b && b.keys) || {};
+          for (const k of SYNC_KEYS) {
+            if ((ak[k] ?? null) !== (bk[k] ?? null)) return false;
+          }
+          return true;
+        } catch (_) { return false; }
+      }
+
+      function mergeKurb(localRaw, cloudRaw) {
+        const p = (raw) => { try { const o = typeof raw === "string" ? JSON.parse(raw) : raw; return o && typeof o === "object" ? o : null; } catch (_) { return null; } };
+        const local = p(localRaw), cloud = p(cloudRaw);
+        if (!local) return cloud ? JSON.stringify(cloud) : null;
+        if (!cloud) return null;
+        const newer = (a, b) => ((b && (b.updatedAt || 0)) > ((a && a.updatedAt) || 0) ? b : a) || b || a;
+        const out = Object.assign({}, cloud, local);
+        out.profile = newer(local.profile, cloud.profile);
+        out.progress = newer(local.progress, cloud.progress);
+        const days = Object.assign({}, cloud.days || {});
+        for (const [d, v] of Object.entries(local.days || {})) days[d] = newer(v, days[d]);
+        const lt = local.today, ct = cloud.today;
+        if (lt && ct && lt.date !== ct.date) {
+          const [older, cur] = lt.date > ct.date ? [ct, lt] : [lt, ct];
+          days[older.date] = newer(days[older.date], older);
+          out.today = cur;
+        } else out.today = newer(lt, ct);
+        if (out.today && out.today.date) delete days[out.today.date];
+        out.days = days;
+        return JSON.stringify(out);
+      }
+
+      /** Three-way merge of the ledger: each device's counter increments are added up. */
+      function mergeLedger3(baseRaw, localRaw, cloudRaw) {
+        const p = (raw) => { try { return JSON.parse(raw || "{}") || {}; } catch (_) { return {}; } };
+        const base = p(baseRaw), local = p(localRaw), cloud = p(cloudRaw);
+        const out = Object.assign({}, cloud, local);
+        for (const f of LEDGER_COUNTERS) {
+          out[f] = Math.max(0, (cloud[f] | 0) + (local[f] | 0) - (base[f] | 0));
+        }
+        return JSON.stringify(out);
+      }
+
+      function applyCloudBlob(data, base) {
+        if (!data || !data.keys || typeof data.keys !== "object") return false;
+        // Never wipe UI while applying: only write keys present in cloud blob.
+        // Skip DOM refresh entirely if local already matches (avoids empty→full flash).
+        const localBefore = collectLocalBlob();
+        if (blobsEqual(localBefore, data)) {
+          return false;
+        }
+        applyingCloud = true;
+        try {
+          // Snapshot BEFORE cloud overwrites — open todos prove "not checked off";
+          // today's local times must survive stale cloud lastDate.
+          let localOpen = { prayer: {}, habit: {} };
+          let localPsSnap = null;
+          try { localOpen = collectOpenAutoIds(load()); } catch (_) {}
+          try { localPsSnap = loadPrayerSettings(); } catch (_) { localPsSnap = null; }
+          // Fresh start: the newer reset wins. If another device reset, drop this
+          // device's pre-reset progress and take the cloud's; if this device reset,
+          // ignore the cloud's stale progress.
+          const localReset = localStorage.getItem(RESET_KEY) || "";
+          const cloudReset = typeof data.keys[RESET_KEY] === "string" ? data.keys[RESET_KEY] : "";
+          const adoptCloudReset = cloudReset > localReset;
+          if (adoptCloudReset) {
+            RESET_CLEARS.forEach(k => _removeItem(k));
+            _setItem(RESET_KEY, cloudReset);
+          }
+          const staleCloud = localReset > cloudReset;
+          for (const k of SYNC_KEYS) {
+            if (!Object.prototype.hasOwnProperty.call(data.keys, k)) continue;
+            if (k === RESET_KEY) continue;
+            if (staleCloud && RESET_CLEARS.includes(k)) continue;
+            const val = data.keys[k];
+            // Merge done maps: empty cloud must not undo local check-offs; open local
+            // todos strip stale cloud-only done flags so undoned salah is not pruned.
+            if (k === "todo-app-prayer-done-v1" || k === "todo-app-habit-done-v1") {
+              let merged = mergeDoneMaps(localStorage.getItem(k), val);
+              const open = k === "todo-app-prayer-done-v1" ? localOpen.prayer : localOpen.habit;
+              merged = stripDoneIdsForOpenItems(merged, open);
+              localStorage.setItem(k, JSON.stringify(merged));
+              continue;
+            }
+            // Empty cloud todos must never wipe local open todos (manual or auto).
+            if (k === "todo-app-v3") {
+              let cloudItems = [];
+              try {
+                cloudItems = typeof val === "string" ? JSON.parse(val || "[]") : (val || []);
+                if (!Array.isArray(cloudItems)) cloudItems = [];
+              } catch (_) { cloudItems = []; }
+              const localItems = load();
+              if (cloudItems.length === 0 && localItems.length > 0) {
+                continue; // keep local
+              }
+              // Union, not overwrite: a todo added on another device is kept, and so is one added here.
+              const deleted = Object.assign({}, loadDeleted(), parseDoneMapJson(data.keys[DELETED_KEY]));
+              localStorage.setItem(k, JSON.stringify(mergeTodoLists(localItems, cloudItems, deleted)));
+              continue;
+            }
+            if (k === DELETED_KEY) {
+              const merged = Object.assign({}, parseDoneMapJson(val), loadDeleted());
+              localStorage.setItem(k, JSON.stringify(merged));
+              continue;
+            }
+            // Veli: union awarded keys (local wins conflicts); recompute total.
+            if (k === "todo-app-veli-points-v1") {
+              const parseV = (raw) => {
+                try {
+                  const o = typeof raw === "string" ? JSON.parse(raw || "{}") : (raw || {});
+                  return {
+                    total: o.total|0,
+                    awarded: (o.awarded && typeof o.awarded === "object") ? o.awarded : {}
+                  };
+                } catch (_) { return { total: 0, awarded: {} }; }
+              };
+              const localV = parseV(localStorage.getItem(k));
+              const cloudV = parseV(val);
+              const awarded = Object.assign({}, cloudV.awarded, localV.awarded);
+              let total = 0;
+              Object.keys(awarded).forEach(ak => { total += awarded[ak]|0; });
+              localStorage.setItem(k, JSON.stringify({ total, awarded }));
+              continue;
+            }
+            // Kurb Yolu: newer profile and progress win; days are merged, newer edit per day.
+            if (k === KURB_KEY) {
+              const merged = mergeKurb(localStorage.getItem(k), val);
+              if (merged != null) localStorage.setItem(k, merged);
+              continue;
+            }
+            // Archive: union by id (local wins); keep both if no id.
+            if (k === "todo-app-archive-v1") {
+              const parseA = (raw) => {
+                try {
+                  const a = typeof raw === "string" ? JSON.parse(raw || "[]") : raw;
+                  return Array.isArray(a) ? a : [];
+                } catch (_) { return []; }
+              };
+              const localA = parseA(localStorage.getItem(k));
+              const cloudA = parseA(val);
+              const byId = new Map();
+              cloudA.forEach(r => { if (r && r.id) byId.set(r.id, r); });
+              localA.forEach(r => { if (r && r.id) byId.set(r.id, r); });
+              const extras = [];
+              [...cloudA, ...localA].forEach(r => { if (r && !r.id) extras.push(r); });
+              let rows = [...byId.values(), ...extras];
+              // Dedupe by date+prayer so semantic rows survive id drift across devices
+              const best = new Map();
+              const noPrayer = [];
+              rows.forEach(r => {
+                if (!r) return;
+                if (!r.prayer) { noPrayer.push(r); return; }
+                const key = archiveSemanticKey(r.date || "", r.prayer);
+                const prev = best.get(key);
+                if (!prev) { best.set(key, r); return; }
+                const prevRank = ARCHIVE_STATUS_RANK[prev.status] || 0;
+                const nextRank = ARCHIVE_STATUS_RANK[r.status] || 0;
+                if (nextRank > prevRank) best.set(key, r);
+                else if (nextRank === prevRank && String(r.completedAt || "") > String(prev.completedAt || "")) best.set(key, r);
+              });
+              rows = [...best.values(), ...noPrayer];
+              rows.sort((a, b) => String(b.completedAt || "").localeCompare(String(a.completedAt || "")));
+              localStorage.setItem(k, JSON.stringify(rows));
+              continue;
+            }
+            // Single-value keys (settings, ledger): with a known base, keep whichever
+            // side changed; if both changed, keep this device's (ledger counters add up).
+            if (base && !(adoptCloudReset && RESET_CLEARS.includes(k))) {
+              const localVal = localStorage.getItem(k);
+              const baseVal = base[k] ?? null;
+              const cloudVal = val == null ? null : (typeof val === "string" ? val : JSON.stringify(val));
+              if (localVal !== baseVal) {
+                if (cloudVal !== baseVal && k === "todo-app-ledger-v1") {
+                  localStorage.setItem(k, mergeLedger3(baseVal, localVal, cloudVal));
+                }
+                continue;
+              }
+            }
+            if (val == null) localStorage.removeItem(k);
+            else localStorage.setItem(k, typeof val === "string" ? val : JSON.stringify(val));
+          }
+          // Prefer today's local prayer times over stale cloud lastDate so inject still runs.
+          try {
+            const psKey = "todo-app-prayer-settings-v1";
+            if (Object.prototype.hasOwnProperty.call(data.keys, psKey) && localPsSnap) {
+              const cloudPs = JSON.parse(localStorage.getItem(psKey) || "{}");
+              const today = todayISO();
+              if (localPsSnap.times && localPsSnap.lastDate === today &&
+                  (!cloudPs || cloudPs.lastDate !== today || !cloudPs.times)) {
+                const kept = Object.assign({}, cloudPs, {
+                  times: localPsSnap.times,
+                  lastDate: localPsSnap.lastDate,
+                  lat: localPsSnap.lat != null ? localPsSnap.lat : cloudPs.lat,
+                  lon: localPsSnap.lon != null ? localPsSnap.lon : cloudPs.lon,
+                  autoTodos: localPsSnap.autoTodos != null ? localPsSnap.autoTodos : cloudPs.autoTodos
+                });
+                localStorage.setItem(psKey, JSON.stringify(kept));
+              }
+            }
+          } catch (_) {}
+          // Cloud todos may still list a salah that was checked off locally — strip those only.
+          // Never prune undoned salah (not in reconciled done map).
+          pruneCompletedAutoTodos();
+        } finally {
+          applyingCloud = false;
+        }
+        refreshAppUI();
+        return true;
+      }
+
+      function refreshAppUI() {
+        try {
+          // Inject before paint so cloud empty [] does not flash "No tasks yet"
+          if (typeof window.injectDueTodosFromCache === "function") window.injectDueTodosFromCache();
+          if (typeof window.render === "function") window.render();
+          if (typeof window.syncPrayerUI === "function") window.syncPrayerUI();
+          if (typeof window.syncLedgerUI === "function") window.syncLedgerUI();
+          if (typeof window.backfillArchiveFromVeli === "function") window.backfillArchiveFromVeli();
+          if (typeof window.renderArchive === "function") window.renderArchive();
+          if (typeof window.syncVeliPrayerMisses === "function") window.syncVeliPrayerMisses();
+          if (typeof window.renderVeliPoints === "function") window.renderVeliPoints();
+          if (typeof window.renderQadaUI === "function") {
+            const L = typeof window.loadLedger === "function" ? window.loadLedger() : null;
+            if (L) window.renderQadaUI(L);
+          }
+          if (typeof window.loadPrayerSettings === "function" && typeof window.renderPrayerTimes === "function") {
+            const s = window.loadPrayerSettings();
+            if (s && s.times) window.renderPrayerTimes(s);
+          }
+        } catch (e) {
+          console.warn("UI refresh after cloud load:", e);
+        }
+      }
+
+      async function fetchCloudRow(userId) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        try {
+          const { data, error } = await supabase
+            .from("app_state")
+            .select("data, updated_at")
+            .eq("user_id", userId)
+            .eq("app_id", APP_ID)
+            .abortSignal(controller.signal)
+            .maybeSingle();
+          if (error) throw error;
+          return data;
+        } catch (e) {
+          if (controller.signal.aborted || (e && (e.name === "AbortError" || /aborted|abort/i.test(String(e.message || e))))) {
+            throw new Error("Cloud load timed out after 5s — using this device’s data.");
+          }
+          throw e;
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      }
+
+      /**
+       * Save only if the row is still the version we last saw. Returns false when
+       * another device saved in between, so the caller merges again instead of
+       * overwriting that device's changes.
+       */
+      async function saveCloudIfUnchanged(userId, blob, expectedUpdatedAt) {
+        if (!expectedUpdatedAt) { await upsertCloud(userId, blob); return true; }
+        const payload = { data: blob, updated_at: new Date().toISOString() };
+        const { data, error } = await supabase
+          .from("app_state")
+          .update(payload)
+          .eq("user_id", userId)
+          .eq("app_id", APP_ID)
+          .eq("updated_at", expectedUpdatedAt)
+          .select("updated_at");
+        if (error) throw error;
+        if (!data || !data.length) return false;
+        lastCloudUpdatedAt = data[0].updated_at || payload.updated_at;
+        lastSyncedKeys = Object.assign({}, blob.keys || {});
+        return true;
+      }
+
+      async function upsertCloud(userId, blob) {
+        const payload = {
+          user_id: userId,
+          app_id: APP_ID,
+          data: blob,
+          updated_at: new Date().toISOString(),
+        };
+        const { data, error } = await supabase
+          .from("app_state")
+          .upsert(payload, { onConflict: "user_id,app_id" })
+          .select("updated_at")
+          .single();
+        if (error) throw error;
+        lastCloudUpdatedAt = data?.updated_at || payload.updated_at;
+        lastSyncedKeys = Object.assign({}, blob.keys || {});
+        return data;
+      }
+
+      function scheduleCloudSave() {
+        if (!currentUser || !syncReady || applyingCloud) return;
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          pushLocalToCloud().catch((e) => {
+            console.warn("Cloud save failed:", e);
+            setStatus("Could not save to cloud: " + (e.message || e), "err");
+          });
+        }, 800);
+      }
+
+      /** Merge in whatever another device saved since we last synced. */
+      async function pullAndMerge(userId) {
+        const row = await fetchCloudRow(userId);
+        if (!row || !cloudHasData(row.data)) return false;
+        if (row.updated_at && row.updated_at === lastCloudUpdatedAt) return false;
+        lastCloudUpdatedAt = row.updated_at;
+        const applied = applyCloudBlob(row.data, lastSyncedKeys);
+        lastSyncedKeys = Object.assign({}, row.data.keys || {});
+        return applied;
+      }
+
+      async function pushLocalToCloud() {
+        if (!currentUser) return;
+        const userId = currentUser.id;
+        // Pull and merge first, then save only if nobody saved in between;
+        // otherwise merge again. Saving never wipes out another device's changes.
+        for (let attempt = 0; attempt < 4; attempt++) {
+          await pullAndMerge(userId);
+          if (!currentUser || currentUser.id !== userId) return;
+          if (await saveCloudIfUnchanged(userId, collectLocalBlob(), lastCloudUpdatedAt)) {
+            setStatus("Synced to your account", "ok");
+            return;
+          }
+        }
+        // Still racing after several merges: save the merged copy anyway rather than not at all.
+        await upsertCloud(userId, collectLocalBlob());
+        setStatus("Synced to your account", "ok");
+      }
+
+      function clearLocalAppData() {
+        for (const k of SYNC_KEYS) _removeItem(k);
+        notified = new Set();
+      }
+
+      async function onSignedIn(user) {
+        if (signedInRunning) return;
+        signedInRunning = true;
+        currentUser = user;
+        syncReady = false;
+        updateAuthUI();
+        // Data left on this device by a different account must never be uploaded into this one.
+        const owner = localStorage.getItem(OWNER_KEY);
+        if (owner && owner !== user.id) {
+          clearLocalAppData();
+          lastSyncedKeys = null;
+          refreshAppUI();
+        }
+        _setItem(OWNER_KEY, user.id);
+        // Local list already painted; cloud is background-only. Never clear UI while waiting.
+        setStatus("Syncing with your account…");
+        try {
+          const row = await fetchCloudRow(user.id);
+          if (!row || !cloudHasData(row.data)) {
+            // Ensure auto todos exist in local before first upload
+            try {
+              if (typeof window.injectDueTodosFromCache === "function") window.injectDueTodosFromCache();
+            } catch (_) {}
+            const afterInject = collectLocalBlob();
+            if (localHasData(afterInject)) {
+              await upsertCloud(user.id, afterInject);
+              setStatus("Uploaded this device’s data to your account", "ok");
+            } else {
+              setStatus("Signed in — nothing to sync yet", "ok");
+            }
+          } else {
+            lastCloudUpdatedAt = row.updated_at;
+            const applied = !!applyCloudBlob(row.data, lastSyncedKeys);
+            lastSyncedKeys = Object.assign({}, row.data.keys || {});
+            // Status only after fetch finishes — never claim "loaded" early or when nothing changed
+            if (applied) setStatus("Loaded data from your account", "ok");
+            else setStatus("Already up to date with your account", "ok");
+          }
+        } catch (e) {
+          console.error(e);
+          const msg = String(e && e.message || e);
+          setStatus(/timed out/i.test(msg)
+            ? "Cloud sync timed out — using this device’s data"
+            : ("Cloud sync error: " + msg), "err");
+        } finally {
+          // syncReady first so inject→save schedules a real cloud push (empty cloud [] must not stick)
+          syncReady = true;
+          try {
+            if (typeof window.injectDueTodosFromCache === "function") window.injectDueTodosFromCache();
+          } catch (_) {}
+          // Persist merged prayer/habit-done (local ∪ cloud) so other devices keep check-offs
+          try { scheduleCloudSave(); } catch (_) {}
+          signedInRunning = false;
+        }
+      }
+
+      function queueOnSignedIn(user) {
+        signedInMutex = signedInMutex.then(() => new Promise((resolve) => {
+          setTimeout(() => {
+            Promise.resolve()
+              .then(() => onSignedIn(user))
+              .catch((e) => console.error("onSignedIn failed:", e))
+              .finally(resolve);
+          }, 0);
+        }));
+        return signedInMutex;
+      }
+
+      let cloudPullScheduledFor = null;
+      function scheduleCloudPull(user) {
+        if (!user) return;
+        currentUser = user;
+        updateAuthUI();
+        if (cloudPullScheduledFor === user.id) return;
+        cloudPullScheduledFor = user.id;
+        queueOnSignedIn(user);
+      }
+
+      function onSignedOut() {
+        currentUser = null;
+        syncReady = false;
+        lastCloudUpdatedAt = null;
+        cloudPullScheduledFor = null;
+        updateAuthUI();
+        setStatus("");
+      }
+
+      function updateAuthUI() {
+        if (currentUser) {
+          const email = currentUser.email || currentUser.user_metadata?.email || "Signed in";
+          emailEl.hidden = false;
+          emailEl.textContent = email;
+          hintEl.textContent = "Signed in — changes sync to your account. Signing out saves your data to your account and removes it from this device.";
+          signInBtn.hidden = true;
+          signOutBtn.hidden = false;
+        } else {
+          emailEl.hidden = true;
+          emailEl.textContent = "";
+          hintEl.textContent = "Without login, data stays on this device. Sign in to sync it to your account across devices.";
+          signInBtn.hidden = false;
+          signOutBtn.hidden = true;
+        }
+      }
+
+      signInBtn.addEventListener("click", async () => {
+        setStatus("Opening Google sign-in…");
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: redirectTo() },
+        });
+        if (error) {
+          console.error(error);
+          setStatus(
+            error.message || "Google sign-in failed. Enable the Google provider in Supabase Auth if you have not yet.",
+            "err"
+          );
+        }
+      });
+
+      signOutBtn.addEventListener("click", async () => {
+        setStatus("Saving and signing out…");
+        clearTimeout(saveTimer);
+        try {
+          if (currentUser && syncReady) await pushLocalToCloud();
+        } catch (e) {
+          console.warn("Final save failed:", e);
+          if (!confirm("Your latest changes could not be saved to your account. Sign out anyway? They will be removed from this device.")) {
+            setStatus("Still signed in — changes not saved yet: " + (e.message || e), "err");
+            return;
+          }
+        }
+        const { error } = await supabase.auth.signOut();
+        if (error) { setStatus(error.message || "Sign out failed", "err"); return; }
+        onSignedOut();
+        // Leave nothing behind for the next person who signs in on this device.
+        clearLocalAppData();
+        _removeItem(OWNER_KEY);
+        lastSyncedKeys = null;
+        refreshAppUI();
+        setStatus("Signed out. Your data is in your account and was removed from this device.", "ok");
+      });
+
+      const _setItem = localStorage.setItem.bind(localStorage);
+      const _removeItem = localStorage.removeItem.bind(localStorage);
+      localStorage.setItem = function (key, value) {
+        _setItem(key, value);
+        if (SYNC_KEYS.includes(key)) scheduleCloudSave();
+      };
+      localStorage.removeItem = function (key) {
+        _removeItem(key);
+        if (SYNC_KEYS.includes(key)) scheduleCloudSave();
+      };
+
+      // The Yol tab writes from its own frame, which bypasses the setItem hook above.
+      window.addEventListener("storage", (e) => {
+        if (e.key === KURB_KEY && e.storageArea === localStorage) scheduleCloudSave();
+      });
+
+      // Pick up changes from other devices when the app comes back to the foreground.
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState !== "visible" || !currentUser || !syncReady) return;
+        pullAndMerge(currentUser.id)
+          .then((applied) => { if (applied) scheduleCloudSave(); })
+          .catch((e) => console.warn("Foreground pull failed:", e));
+      });
+
+      // Never await DB inside this callback (supabase-js auth lock deadlock).
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "INITIAL_SESSION") return;
+        if (event === "SIGNED_IN" && session?.user) {
+          scheduleCloudPull(session.user);
+        } else if (event === "SIGNED_OUT") {
+          cloudPullScheduledFor = null;
+          onSignedOut();
+        } else if (session?.user) {
+          currentUser = session.user;
+          updateAuthUI();
+        } else if (!session) {
+          cloudPullScheduledFor = null;
+          onSignedOut();
+        }
+      });
+
+      // Session after UMD load — local UI already painted; pull is deferred macrotask.
+      supabase.auth.getSession().then(({ data: { session }, error: sessErr }) => {
+        if (sessErr) console.warn(sessErr);
+        if (session?.user) scheduleCloudPull(session.user);
+        else updateAuthUI();
+        if (window.location.hash && /access_token|refresh_token|error|code=/.test(window.location.hash + window.location.search)) {
+          history.replaceState(null, "", window.location.pathname + window.location.search.replace(/[?&](code|state)=[^&]*/g, "").replace(/^\?$/, ""));
+        }
+      });
+    }
+  </script>
+
+</body>

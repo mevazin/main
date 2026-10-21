@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Kurb Yolu</title>
+</head>
+<body>
+
+<style>
+/* Layout: one phone-width column like a pocket notebook; bottom tab bar; firuze (Iznik turquoise) accent on cool stone / night indigo. */
+:root{
+  --bg:#EDF1F2; --surface:#FAFCFC; --sunk:#E3E9EB; --ink:#15223A; --muted:#566377; --line:#D2DBE0;
+  --accent:#086A64; --accent-ink:#FFFFFF; --accent-soft:#D5EBE8; --gold:#7A5A16; --gold-soft:#F1E7CF;
+  --ok:#2F7A3E; --shadow:0 1px 2px rgba(21,34,58,.06),0 6px 20px rgba(21,34,58,.06);
+  --f-display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --f-body:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --f-ar:"Noto Naskh Arabic","Geeza Pro","Traditional Arabic","Times New Roman",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1220; --surface:#141C2D; --sunk:#0F1626; --ink:#E5EBF2; --muted:#9AA7B9; --line:#243049;
+  --accent:#3DBFB3; --accent-ink:#06221F; --accent-soft:#143539; --gold:#D6B160; --gold-soft:#2A2616;
+  --ok:#6BC07B; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1220; --surface:#141C2D; --sunk:#0F1626; --ink:#E5EBF2; --muted:#9AA7B9; --line:#243049;
+  --accent:#3DBFB3; --accent-ink:#06221F; --accent-soft:#143539; --gold:#D6B160; --gold-soft:#2A2616;
+  --ok:#6BC07B; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:16px;line-height:1.55;padding-inline:16px;padding-block:0 96px}
+.wrap{max-width:680px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:1.9rem} h2{font-size:1.4rem} h3{font-size:1.15rem}
+p{margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.muted{color:var(--muted)}
+.small{font-size:.875rem}
+.eyebrow{font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.ar{font-family:var(--f-ar);direction:rtl;font-size:1.6rem;line-height:1.9;color:var(--gold)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* header */
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-block:20px 12px}
+.brand{display:flex;gap:10px;align-items:center}
+.brand svg{width:34px;height:34px;flex:none}
+.brand b{font-family:var(--f-display);font-size:1.35rem;display:block;line-height:1}
+.brand span{font-size:.8rem;color:var(--muted)}
+.top .row{flex-wrap:nowrap;flex:none}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.85rem}
+.dates{margin-block:4px 16px}
+.dates .g{font-family:var(--f-display);font-size:1.5rem}
+.dates .h{color:var(--gold);font-size:.95rem}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.card.flat{box-shadow:none}
+.banner{background:var(--accent-soft);border:1px solid transparent;border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.btn{border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:9px 14px;font-weight:700}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.quiet{border-color:var(--line);background:var(--surface);color:var(--ink);font-weight:500}
+.btn:disabled{opacity:.5;cursor:default}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.9rem}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--sunk);color:var(--muted)}
+.tag.l1{background:var(--accent-soft);color:var(--accent)}
+.tag.l3{background:var(--gold-soft);color:var(--gold)}
+
+/* prayers */
+.prayers{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:6px}
+.prayers button{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 2px;font-size:.82rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+.prayers button .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
+.prayers button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.prayers button[aria-pressed="true"] .dot{background:var(--accent);border-color:var(--accent)}
+
+/* loop */
+.loop{display:flex;flex-direction:column;gap:0;position:relative}
+.step{display:grid;grid-template-columns:36px minmax(0,1fr);gap:12px;padding-block:6px 18px;position:relative}
+.step:not(:last-child)::before{content:"";position:absolute;left:17px;top:40px;bottom:0;width:2px;background:var(--line)}
+.step .mark{width:36px;height:36px;display:grid;place-items:center;position:relative}
+.step .mark svg{position:absolute;inset:0;width:36px;height:36px}
+.step .mark span{position:relative;font-family:var(--f-display);font-weight:700;font-size:.95rem;color:var(--accent)}
+.step.done .mark span{color:var(--accent-ink)}
+.step .body{min-width:0}
+.step h3 small{font-family:var(--f-body);font-weight:500;color:var(--muted);font-size:.85rem;margin-left:6px}
+.lesson-title{font-family:var(--f-display);font-size:1.3rem;font-weight:700;margin-block:6px 6px}
+.lesson-text{max-width:65ch}
+.evidence{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px;display:flex;flex-direction:column;gap:4px}
+.evidence div{font-size:.86rem;color:var(--muted)}
+.evidence b{color:var(--ink);font-weight:500}
+.libref{font-family:ui-monospace,"Cascadia Mono",Menlo,monospace;font-size:.78rem;background:var(--sunk);border-radius:5px;padding:1px 5px;color:var(--ink);white-space:nowrap}
+textarea,input[type=text],select{width:100%;border:1px solid var(--line);background:var(--sunk);border-radius:10px;padding:10px 12px;resize:vertical}
+textarea{min-height:72px}
+.private{font-size:.78rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+
+/* path */
+.hero-ayah{text-align:center;padding:22px 16px}
+.hero-ayah .mean{font-family:var(--f-display);font-style:italic;font-size:1.1rem;max-width:52ch;margin:6px auto 4px}
+.moves{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.move{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--surface);min-width:0}
+.move b{font-family:var(--f-display);font-size:1.05rem;display:block}
+.move span{font-size:.82rem;color:var(--muted)}
+.domain{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+.domain summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.domain summary::-webkit-details-marker{display:none}
+.domain summary h3{font-size:1.08rem}
+.meter{display:flex;gap:3px}
+.meter i{width:9px;height:9px;border-radius:2px;background:var(--line);transform:rotate(45deg)}
+.meter i.on{background:var(--accent)}
+.lessons{border-top:1px solid var(--line)}
+.lrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left}
+.lrow:last-child{border-bottom:0}
+.lrow:hover{background:var(--sunk)}
+.lrow .t{min-width:0}
+.tag.unv{background:var(--gold-soft);color:var(--gold)}
+ul.plist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+ul.plist li{display:flex;justify-content:space-between;align-items:center;gap:10px}
+ul.plist li span{min-width:0}
+.check{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center}
+.check.on{background:var(--accent);border-color:var(--accent)}
+.check.on::after{content:"";width:6px;height:10px;border:solid var(--accent-ink);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+
+/* library */
+.stage h3{margin-bottom:4px}
+.book{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.book:last-child{border-bottom:0}
+.book .ti{font-family:var(--f-display);font-weight:700;font-size:1.05rem}
+.status{font-size:.75rem;padding:2px 8px;border-radius:6px;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.status.free{background:var(--accent-soft);color:var(--accent)}
+.mine{align-self:start;border:1px solid var(--line);background:var(--surface);border-radius:999px;font-size:.8rem;padding:4px 10px;white-space:nowrap}
+.mine[data-s="reading"]{border-color:var(--gold);color:var(--gold)}
+.mine[data-s="done"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* guide */
+.chat{display:flex;flex-direction:column;gap:10px}
+.msg{padding:12px 14px;border-radius:14px;max-width:92%;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.u{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:4px}
+.msg.a{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.composer{display:flex;gap:8px;align-items:flex-end}
+.composer textarea{min-height:48px}
+
+/* tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;z-index:5}
+.tabs .in{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;max-width:680px;width:100%}
+.tabs button{border:0;background:none;border-radius:10px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.78rem;color:var(--muted)}
+.tabs button svg{width:22px;height:22px}
+.tabs button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+
+/* sheet */
+.sheet{position:fixed;inset:0;background:rgba(8,12,22,.45);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet .panel{background:var(--bg);width:100%;max-width:680px;max-height:92%;overflow:auto;border-radius:18px 18px 0 0;padding:20px 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.field .lab{font-weight:700;font-size:.9rem}
+ul.principles{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:10px;font-size:.9rem;z-index:20}
+section[hidden]{display:none!important}
+@media (max-width:420px){.moves{grid-template-columns:1fr}.prayers button{font-size:.74rem}}
+.linkbtn{border:0;background:none;padding:2px 0;color:var(--accent);text-decoration:underline;text-underline-offset:2px;font-size:.9rem;font-weight:500}
+button.libref{border:0;cursor:pointer}
+.refinfo{font-size:.82rem;color:var(--muted);padding-left:8px;border-left:2px solid var(--line)}
+.notice{background:var(--gold-soft);border-radius:12px;padding:12px 14px}
+.recall{border-style:dashed}
+.syncline{font-size:.8rem;color:var(--muted)}
+.tagnote{font-size:.8rem;color:var(--gold);align-self:flex-start;max-width:92%}
+.cue input{background:var(--surface)}
+.lessons-list{display:flex;flex-direction:column;gap:6px}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:no-preference){.step .mark svg{transition:transform .4s}.step.done .mark svg{transform:rotate(45deg)}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="8" y="8" width="24" height="24" fill="none" stroke="var(--accent)" stroke-width="2.2"/><rect x="8" y="8" width="24" height="24" fill="none" stroke="var(--gold)" stroke-width="2.2" transform="rotate(45 20 20)"/><circle cx="20" cy="20" r="3.2" fill="var(--accent)"/></svg>
+      <div><b id="appName">Kurb Yolu</b><span id="appSub"></span></div>
+    </div>
+    <div class="row">
+      <button class="iconbtn" id="langBtn" type="button">EN</button>
+      <button class="iconbtn" id="setBtn" type="button"></button>
+    </div>
+  </header>
+
+  <main>
+    <section id="v-today"></section>
+    <section id="v-path" hidden></section>
+    <section id="v-lib" hidden></section>
+    <section id="v-guide" hidden></section>
+  </main>
+</div>
+
+<nav class="tabs" aria-label="Sections"><div class="in" id="tabs"></div></nav>
+<div id="sheetHost"></div>
+<div id="live" class="visually-hidden" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+"use strict";
+/* ---------- content ---------- */
+const DOMAINS = {
+  iman:{tr:"İman",en:"Faith"}, ibadet:{tr:"İbadet",en:"Worship"}, kuran:{tr:"Kur'an",en:"Qur'an"},
+  sunnet:{tr:"Sünnet ve Siyer",en:"Sunna and Sira"}, kalp:{tr:"Kalp ve Nefis",en:"Heart and Self"},
+  ahlak:{tr:"Ahlak ve Dil",en:"Character and Speech"}, is:{tr:"İş ve Rızık",en:"Work and Provision"},
+  aile:{tr:"Aile ve Hizmet",en:"Family and Service"}, beden:{tr:"Beden ve Güç",en:"Body and Strength"},
+  ahiret:{tr:"Ölüm ve Âhiret",en:"Death and the Hereafter"}
+};
+const LEVELS = {1:{tr:"Temel",en:"Foundation"},2:{tr:"Gelişen",en:"Growing"},3:{tr:"Derinleşen",en:"Deepening"}};
+
+// ev: [text, libId?]. Hadith numbers follow the common (Abdülbâkî) numbering; verify in the library before teaching.
+const L = [
+ {id:"niyet",pl:{tr:"Bugün bir işten önce bir an dur ve niyetini içinden söyle.",en:"Before a task today, pause and name your intention silently."},sug:true,d:"kalp",lv:1,
+  t:{tr:"Niyet: her şeyin başı",en:"Intention: where every deed begins"},
+  b:{tr:"Resûlullah ﷺ amellerin niyetlere göre olduğunu ve herkese niyet ettiğinin karşılığı verileceğini bildirir. Âlimler bu hadisi dinin temel metinlerinden sayar. Çalışmak, yemek, uyumak niyetle ibadete dönüşebilir; niyetsiz ibadet ise alışkanlığa iner. Bu yolun ilk adımı yeni bir şey yapmak değil, yaptığını kimin için yaptığını fark etmektir.",
+     en:"The Prophet ﷺ taught that deeds are judged by intentions and each person gets what they intended. Scholars count this hadith among the foundations of the religion. Work, eating and sleep can become worship through intention, while worship done without it slides into habit. The first step on this path is not doing something new but noticing who you are doing it for."},
+  ev:[["Buhârî, Bed'ü'l-vahy 1 (no. 1)","HD01"],["Müslim, İmâre 155 (no. 1907)","HD02"],["İbn Receb, Câmiu'l-ulûm ve'l-hikem, 1. hadis","HD06",{tr:"şerh; HD06 klasörünün bu şerhi içerip içermediği sahibi tarafından kontrol edilecek",en:"commentary; whether the HD06 folder holds it is to be checked by the owner"}]],
+  r:{tr:"Bugün yapacağın sıradan işlerden hangisi bir niyetle ibadete dönüşebilir?",en:"Which ordinary task today could become worship through intention?"},
+  p:{tr:"Üç işten önce bir an dur ve niyetini içinden söyle.",en:"Before three tasks today, pause and name your intention silently."}},
+ {id:"farz",d:"ibadet",lv:1,
+  t:{tr:"Önce farzlar",en:"The obligations come first"},
+  b:{tr:"Kudsî hadiste Allah, kulunun kendisine farz kıldığından daha sevimli bir şeyle yaklaşamayacağını, kulun nafilelerle yaklaşmaya devam ettikçe onu seveceğini bildirir. Yakınlık (kurb) yolu bu sırayla işler: önce farzlar, sonra nafileler. Nafile uğruna farzı ihmal etmek yolu tersine çevirir. Farzların hükmü ve kılınışı için mezhebinin ilmihaline başvur.",
+     en:"In a hadith qudsi, Allah says His servant draws near to Him with nothing more beloved than what He made obligatory, and keeps drawing near through voluntary deeds until He loves him. The path of nearness (qurb) runs in that order: obligations first, then voluntary acts. Neglecting an obligation for a voluntary act turns the path upside down. For rulings and practice, use the manual of your school."},
+  ev:[["Buhârî, Rikâk 38 (no. 6502)","HD01"],["TDV İlmihal I: İman ve İbadetler","FQ01"],["Nûru'l-Îzâh (Hanefî ibadet el kitabı)","FQ03"]],
+  r:{tr:"Farzlardan hangisini en çok erteliyorsun? Seni ne erteletiyor?",en:"Which obligation do you delay most, and what makes you delay it?"},
+  p:{tr:"En sık geciktirdiğin vakit için bugün bir hatırlatıcı kur.",en:"Set a reminder today for the prayer you most often delay."}},
+ {id:"amentu",d:"iman",lv:1,
+  t:{tr:"Âmentü: inancın altı rüknü",en:"The six pillars of faith"},
+  b:{tr:"Allah'a, meleklerine, kitaplarına, peygamberlerine, âhiret gününe ve kadere iman. Mâtürîdî–Hanefî gelenek bunu Fıkh-ı Ekber ve Tahâvî Akîdesi gibi metinlerde özetler. Yûnus sûresi velîleri \"iman edip takvâ sahibi olanlar\" diye tanımlar: velî önce doğru inanan kuldur.",
+     en:"Faith in Allah, His angels, His books, His messengers, the Last Day and divine decree. The Maturidi–Hanafi tradition summarises this in texts such as al-Fiqh al-Akbar and the Creed of al-Tahawi. Surat Yunus defines the friends of Allah as \"those who believe and are mindful of Him\": a walī is first a servant whose belief is sound."},
+  ev:[["Bakara 2:285; Nisâ 4:136","QK02"],["Yûnus 10:62–63","QK02"],["Müslim, Îmân 1 (no. 8)","HD02"],["Tahâvî Akîdesi","AK02"],["İmâm-ı Âzam'ın Beş Eseri","AK01"]],
+  r:{tr:"Altı rükünden hangisi günlük kararlarında en az görünüyor?",en:"Which of the six pillars shows up least in your daily decisions?"},
+  p:{tr:"Her rüknü kendi sözlerinle bir cümleyle yaz.",en:"Write each pillar in one sentence of your own."}},
+ {id:"ihsan",d:"iman",lv:1,
+  t:{tr:"İslâm, îman, ihsân",en:"Islam, iman, ihsan"},
+  b:{tr:"Cibrîl hadisinde din üç boyutuyla öğretilir: İslâm (amel), îman (inanç) ve ihsân, yani Allah'a O'nu görüyormuş gibi kulluk etmek; sen O'nu görmesen de O seni görür. Bu üçü sana verilecek rütbeler değil, ömür boyu birlikte derinleşen boyutlardır.",
+     en:"In the hadith of Jibril the religion is taught in three dimensions: islam (practice), iman (belief) and ihsan, worshipping Allah as though you see Him, for though you do not see Him, He sees you. These are not ranks awarded to you. They are dimensions that deepen together over a lifetime."},
+  ev:[["Müslim, Îmân 1 (no. 8)","HD02"],["Buhârî, Îmân 37 (no. 50)","HD01"]],
+  r:{tr:"Bugün hangi anında \"O beni görüyor\" bilinci davranışını değiştirirdi?",en:"At which moment today would \"He sees me\" have changed what you did?"},
+  p:{tr:"Bir namazın ilk rekâtını bilerek yavaşlat; okuduğunun anlamını hatırla.",en:"Slow down the first rak'a of one prayer and recall the meaning of what you recite."}},
+ {id:"devam",d:"ibadet",lv:1,
+  t:{tr:"Az ama devamlı",en:"Small but constant"},
+  b:{tr:"Hz. Âişe'nin rivayetine göre Allah'a en sevimli amel, az da olsa devamlı olanıdır. Kalıcı değişim büyük başlangıçlarla değil, en kötü gününde bile yapabileceğin küçük amellerle gelir. Bu uygulama bu yüzden seri saymaz: ara verirsen yalnızca geri dönersin.",
+     en:"As narrated by Aisha, the deed most beloved to Allah is the one done constantly, even if small. Lasting change comes from small deeds you can keep on your worst day, not from grand starts. That is why this app counts no streaks: if you pause, you simply come back."},
+  ev:[["Buhârî, Rikâk 18 (no. 6464)","HD01"],["Müslim, Salâtü'l-müsâfirîn 216 (no. 782)","HD02"]],
+  r:{tr:"En yorgun gününde bile yapabileceğin amel hangisi?",en:"Which deed could you keep even on your most tired day?"},
+  p:{tr:"O tek küçük ameli seç ve bugün başla.",en:"Choose that one small deed and begin today."}},
+ {id:"kuran",pl:{tr:"Kur'an'dan biraz, mealiyle ve yavaşça oku.",en:"Read a little of the Qur'an slowly, with the meaning."},sug:true,d:"kuran",lv:1,
+  t:{tr:"Kur'an'la bir gün",en:"A day with the Qur'an"},
+  b:{tr:"\"Sizin en hayırlınız Kur'an'ı öğrenen ve öğretendir.\" Kur'an kendini, ayetleri üzerinde düşünülsün diye indirilmiş mübarek bir kitap olarak tanıtır. Az ama anlayarak ve düzenli okumak, çok ama dağınık okumaktan iyidir.",
+     en:"\"The best of you are those who learn the Qur'an and teach it.\" The Qur'an describes itself as a blessed book sent down so that people reflect on its verses. Reading a little with understanding, regularly, beats reading a lot at random."},
+  ev:[["Buhârî, Fezâilü'l-Kur'ân 21 (no. 5027)","HD01"],["Sâd 38:29","QK02"],["Kur'an Yolu tefsiri","QK03"]],
+  r:{tr:"Bugün okuduğun ayetlerden hangisi sana doğrudan hitap ediyordu?",en:"Which verse you read today spoke to you directly?"},
+  p:{tr:"Bir sayfayı mealiyle yavaşça oku; bir ayeti Kur'an Yolu'ndan aç.",en:"Read one page slowly with the meaning; look one verse up in the Kur'an Yolu commentary."}},
+ {id:"dil",d:"ahlak",lv:1,
+  t:{tr:"Dil: ya hayır ya sükût",en:"Speech: good words or silence"},
+  b:{tr:"\"Allah'a ve âhiret gününe iman eden ya hayır söylesin ya sussun.\" Hucurât sûresi zannın çoğundan, tecessüsten ve gıybetten sakındırır. Gıybet, kardeşinin hoşlanmayacağı bir şeyi arkasından söylemektir; söylenen doğru olsa bile.",
+     en:"\"Whoever believes in Allah and the Last Day, let him speak good or stay silent.\" Surat al-Hujurat warns against much suspicion, spying and backbiting. Backbiting is saying behind someone's back what they would dislike, even when it is true."},
+  ev:[["Buhârî, Edeb 31 (no. 6018)","HD01"],["Müslim, Îmân 74 (no. 47)","HD02"],["Hucurât 49:12","QK02"],["Müslim, Birr 70 (no. 2589)","HD02"]],
+  r:{tr:"Konuşmanın en çok hangi ortamda kaydığını fark ediyor musun?",en:"Where does your speech tend to slip most?"},
+  p:{tr:"Bugün gıybetten sakın: orada olmayan birinin hoşlanmayacağı bir şeyi arkasından söyleme. Bu, danışmana ya da bir zararı bildirmene engel değildir.",en:"Today, avoid backbiting: say nothing behind someone's back that they would dislike. This doesn't stop you seeking advice or reporting harm."}},
+ {id:"zikir",d:"kalp",lv:1,
+  t:{tr:"Zikir: kalbin huzuru",en:"Remembrance: rest for the heart"},
+  b:{tr:"\"Bilesiniz ki kalpler ancak Allah'ı anmakla huzur bulur.\" \"Siz beni anın, ben de sizi anayım.\" Namazlardan sonra otuz üçer tesbih, tahmîd ve tekbîr ile bir tevhid sünnette öğretilmiştir. Zikir sayı yarışı değil, dikkatin Allah'a dönmesidir.",
+     en:"\"Truly, in the remembrance of Allah hearts find rest.\" \"Remember Me and I will remember you.\" The Sunna teaches thirty-three each of tasbih, tahmid and takbir after prayer, completed with the words of tawhid. Dhikr is not a counting contest. It is attention turning back to Allah."},
+  ev:[["Ra'd 13:28; Bakara 2:152","QK02"],["Müslim, Mesâcid 146 (no. 597)","HD02"],["Nevevî, el-Ezkâr","ZK01"],["Hısnu'l-Müslim","ZK03"]],
+  r:{tr:"Günün hangi anında kalbin en dağınık?",en:"At what time of day is your heart most scattered?"},
+  p:{tr:"Bir namazdan sonra tesbihatı anlamını düşünerek yap.",en:"After one prayer, do the tasbihat while thinking of their meaning."}},
+ {id:"tevbe",d:"kalp",lv:1,
+  t:{tr:"Tevbe: dönüş",en:"Tawba: returning"},
+  b:{tr:"\"Ey kendilerinin aleyhine haddi aşan kullarım! Allah'ın rahmetinden ümit kesmeyin.\" Nevevî, Riyâzü's-Sâlihîn'in tevbe bâbında şartları sayar: günahı bırakmak, pişman olmak, tekrar etmemeye azmetmek; kul hakkı varsa hakkı sahibine iade etmek ya da helallik almak. Tevbe yolun başında bir kez yapılan iş değil, her gün dönülen kapıdır.",
+     en:"\"O My servants who have wronged yourselves, do not despair of Allah's mercy.\" In the chapter on repentance of Riyad al-Salihin, al-Nawawi lists its conditions: leaving the sin, regret, and resolving not to return; and where another person's right is involved, restoring it or seeking their pardon. Tawba is not done once at the start of the path. It is the door you return through every day."},
+  ev:[["Zümer 39:53; Tahrîm 66:8","QK02"],["Nevevî, Riyâzü's-Sâlihîn, Tevbe bâbı","HD05"]],
+  r:{tr:"Dönmek istediğin bir alışkanlık var mı? Buraya yazman gerekmiyor.",en:"Is there a habit you want to turn back from? You don't need to write it here."},
+  p:{tr:"Sessiz bir yerde istiğfar et. Birinin hakkı sende kaldıysa, nasıl iade edeceğini planla.",en:"Ask forgiveness somewhere quiet. If you owe someone a right, plan how to return it."}},
+ {id:"emanet",d:"is",lv:1,
+  t:{tr:"İş bir emanettir",en:"Work is a trust"},
+  b:{tr:"\"Allah size emanetleri ehline vermenizi emreder.\" \"Ölçüde ve tartıda hile yapanların vay haline.\" Ölçü yalnız terazi değildir; ücret karşılığında verdiğin zaman ve emek de ölçüdür. Beyaz yakalı çalışan için emanet; mesai, bilgi, şirket kaynakları ve sana güvenen iş arkadaşlarıdır.",
+     en:"\"Allah commands you to render trusts to those they are due.\" \"Woe to those who give short measure.\" Measure is not only the scale: the time and effort you give for a wage are measured too. For an office worker the trust includes working hours, information, company resources and the colleagues who rely on you."},
+  ev:[["Nisâ 4:58; Mutaffifîn 83:1–3","QK02"],["TDV İlmihal II: İslâm ve Toplum","FQ01"]],
+  r:{tr:"İşinde \"eksik tartı\" olabilecek bir alışkanlığın var mı?",en:"Is there a habit at work that could be \"short measure\"?"},
+  p:{tr:"Söz verdiğin bir işi söz verdiğin kaliteyle ve zamanında teslim et.",en:"Deliver one task you promised at the quality and time you promised."}},
+ {id:"aile",d:"aile",lv:1,
+  t:{tr:"Ailesine en hayırlı olan",en:"Best to their family"},
+  b:{tr:"\"Sizin en hayırlınız ailesine karşı en hayırlı olanınızdır; ben de aileme karşı en hayırlınızım.\" Hz. Âişe, Resûlullah'ın ﷺ evde ailesinin işlerine yardım ettiğini, namaz vakti girince namaza çıktığını anlatır. Aile; anne-baba, kardeş, eş, çocuk, hayatında kim varsa odur.",
+     en:"\"The best of you are those best to their families, and I am the best of you to my family.\" Aisha described how the Prophet ﷺ helped with the housework and went out when the prayer time came. Family here means whoever is in your life: parents, siblings, spouse, children."},
+  ev:[["Tirmizî, Menâkıb 63 (no. 3895)","HD03"],["Buhârî, Ezân 44 (no. 676)","HD01"]],
+  r:{tr:"Evdekiler senin hangi hâlini en çok görüyor?",en:"Which version of you do the people at home see most?"},
+  p:{tr:"Evde senden istenmeden bir iş yap.",en:"Do one job at home without being asked."}},
+ {id:"beden",d:"beden",lv:1,
+  t:{tr:"Bedeninin senin üzerinde hakkı var",en:"Your body has a right over you"},
+  b:{tr:"Geceleri hep namaz kılıp gündüzleri hep oruç tutmak isteyen Abdullah b. Amr'a Resûlullah ﷺ, bedeninin, gözünün ve eşinin onun üzerinde hakkı olduğunu söyledi. Bu yolda aşırılık da bir sapmadır; uyku, hareket ve beslenme ibadeti taşıyan emanetlerdir.",
+     en:"When Abdullah b. Amr wanted to pray every night and fast every day, the Prophet ﷺ told him that his body, his eyes and his wife each had a right over him. Excess is also a way of leaving the path. Sleep, movement and food are trusts that carry your worship."},
+  ev:[["Buhârî, Savm 55 (no. 1975)","HD01"]],
+  r:{tr:"Bedenine karşı en çok hangi hakkı ihmal ediyorsun?",en:"Which of your body's rights do you neglect most?"},
+  p:{tr:"Bu gece telefonu bırakacağın saati belirle ve ona uy.",en:"Decide the time you'll put your phone down tonight, and keep it."}},
+ {id:"siyer",pl:{tr:"Bir siyer kitabından biraz oku; taklit edebileceğin bir alışkanlığını fark et.",en:"Read a little of a sira and notice one habit of his you could imitate."},sug:true,d:"sunnet",lv:1,
+  t:{tr:"Güzel örnek",en:"The beautiful example"},
+  b:{tr:"\"Andolsun, Allah'ın Resûlünde sizin için güzel bir örnek vardır.\" Hz. Âişe'ye onun ahlakı sorulduğunda \"Onun ahlakı Kur'an'dı\" dedi. \"De ki: Allah'ı seviyorsanız bana uyun ki Allah da sizi sevsin.\" Bu yol, Resûlullah'ı ﷺ tanımak ve sevmekle yürünür.",
+     en:"\"In the Messenger of Allah you have a beautiful example.\" Asked about his character, Aisha said: \"His character was the Qur'an.\" \"Say: if you love Allah, follow me, and Allah will love you.\" This path is walked by coming to know and love the Prophet ﷺ."},
+  ev:[["Ahzâb 33:21; Âl-i İmrân 3:31","QK02"],["Müslim, Salâtü'l-müsâfirîn 139 (no. 746)","HD02"],["Hamîdullah, İslâm Peygamberi","SR02"],["Tirmizî, Şemâil (Kandemir şerhi)","SR04"]],
+  r:{tr:"Onun hangi alışkanlığı senin hayatında en uzak duruyor?",en:"Which of his habits is furthest from your life right now?"},
+  p:{tr:"İslâm Peygamberi'nden bir bölüm oku; taklit edebileceğin bir alışkanlığını not et.",en:"Read one chapter of a sira and note one habit of his you can imitate."}},
+ {id:"muhasebe",pl:{tr:"Bu akşam istersen bir şükür ve yarın için bir niyet düşün.",en:"Tonight, if you like, think of something to be thankful for and an intention for tomorrow."},sug:true,d:"kalp",lv:2,
+  t:{tr:"Hesaba çekilmeden önce",en:"Before you are called to account"},
+  b:{tr:"\"Ey iman edenler! Allah'tan sakının ve herkes yarın için ne hazırladığına baksın.\" Hz. Ömer'e nisbet edilen söz: \"Hesaba çekilmeden önce kendinizi hesaba çekin.\" Muhasebe kendini mahkûm etmek değil; şükredilecek ve düzeltilecek olanı görüp yarına niyet etmektir. Bu uygulamanın akşam bölümü bu yüzden puan vermez.",
+     en:"\"O you who believe, be mindful of Allah, and let every soul look to what it has sent ahead for tomorrow.\" A saying attributed to Umar: \"Take yourselves to account before you are taken to account.\" Self-review is not self-condemnation. It is seeing what to be grateful for and what to mend, then intending better for tomorrow. That is why the evening review here gives no score."},
+  ev:[["Haşr 59:18","QK02"],["Tirmizî, Kıyâme 25 (no. 2459'un ardından)","HD03"],["Gazzâlî, İhyâ, Murâkabe ve muhasebe kitabı","TS01"]],
+  r:{tr:"Muhasebe sende daha çok suçluluk mu, yoksa yön mü üretiyor?",en:"Does self-review produce more guilt in you, or more direction?"},
+  p:{tr:"Bu akşam üç dakika: bir şükür, bir istiğfar, yarın için bir niyet.",en:"Tonight, three minutes: one thanks, one plea for forgiveness, one intention for tomorrow."}},
+ {id:"malayani",d:"ahlak",lv:2,
+  t:{tr:"Mâlâyânî ve ekran",en:"What doesn't concern you, and screens"},
+  b:{tr:"\"Kişinin, kendisini ilgilendirmeyeni terk etmesi, İslâm'ının güzelliğindendir.\" Bugün mâlâyâninin en geniş kapısı ekranlardır: bitmeyen akış, başkalarının hayatı, faydasız tartışma. Terk etmek tamamen kopmak değil, faydası olmayanı seçerek bırakmaktır.",
+     en:"\"Part of the excellence of a person's Islam is leaving what does not concern him.\" Today the widest door to such distraction is the screen: endless feeds, other people's lives, pointless arguments. Leaving it does not mean cutting yourself off. It means choosing to drop what brings no benefit."},
+  ev:[["Tirmizî, Zühd 11 (no. 2317)","HD03"],["Nevevî, Kırk Hadis, 12","HD06"]],
+  r:{tr:"Günde ne kadar zamanın, seni ilgilendirmeyen şeylere gidiyor?",en:"How much of your day goes to things that don't concern you?"},
+  p:{tr:"Seni en çok oyalayan uygulamayı bugün ana ekrandan kaldır.",en:"Move the app that distracts you most off your home screen today."}},
+ {id:"sukur",d:"kalp",lv:2,
+  t:{tr:"Şükür",en:"Gratitude"},
+  b:{tr:"\"Şükrederseniz elbette size artırırım.\" \"İnsanlara teşekkür etmeyen Allah'a şükretmez.\" Şükür; nimeti fark etmek, kalben Allah'tan bilmek, dille söylemek ve nimeti O'nun rızasına uygun kullanmaktır. Gazzâlî İhyâ'da sabır ve şükrü tek kitapta birlikte işler.",
+     en:"\"If you are grateful, I will surely give you more.\" \"Whoever does not thank people does not thank Allah.\" Gratitude means noticing a blessing, knowing in the heart it is from Allah, saying so, and using it as He would be pleased. Al-Ghazali treats patience and gratitude together in one book of the Ihya."},
+  ev:[["İbrâhîm 14:7","QK02"],["Ebû Dâvûd, Edeb 11 (no. 4811); Tirmizî, Birr 35 (no. 1954)","HD03"],["Gazzâlî, İhyâ, Sabır ve şükür kitabı","TS01"]],
+  r:{tr:"Alıştığın için artık fark etmediğin bir nimet hangisi?",en:"Which blessing have you stopped noticing because you're used to it?"},
+  p:{tr:"Bugün bir kişiye, yaptığı belirli bir şey için adıyla teşekkür et.",en:"Thank one person today, by name, for something specific they did."}},
+ {id:"sabir",pl:{tr:"Bugün öfkelendiğinde cevap vermeden önce kısa bir an dur.",en:"When you get angry today, pause briefly before you reply."},sug:true,d:"kalp",lv:2,
+  t:{tr:"Sabır ilk sarsıntıdadır",en:"Patience is at the first blow"},
+  b:{tr:"Resûlullah ﷺ bir kabrin başında ağlayan kadına sabrı tavsiye etti; kadın onu tanımadan ters karşılık verdi, sonra gelip özür diledi. Buyurdu: \"Sabır, musibetin ilk anındadır.\" Sabır duyguyu bastırmak değil; o ilk anda Allah'ın razı olmayacağı söz ve davranıştan kendini tutmaktır.",
+     en:"The Prophet ﷺ advised patience to a woman weeping at a grave. Not recognising him, she answered sharply, then later came to apologise. He said: \"Patience is at the first blow.\" Patience is not suppressing feeling. It is holding yourself back, in that first moment, from words and acts Allah would not be pleased with."},
+  ev:[["Buhârî, Cenâiz 32 (no. 1283)","HD01"],["Bakara 2:153–157","QK02"]],
+  r:{tr:"Senin \"ilk anın\" genelde nasıl geçer?",en:"What does your \"first moment\" usually look like?"},
+  p:{tr:"Bugün öfkelendiğinde cevabını bir dakika geciktir.",en:"When you get angry today, delay your reply by one minute."}},
+ {id:"helal",d:"is",lv:1,
+  t:{tr:"Helal kazanç",en:"Lawful earning"},
+  b:{tr:"\"Hiç kimse elinin emeğinden daha hayırlı bir yiyecek yememiştir.\" Kazancın helalliği ibadetin ve duanın zeminidir. Ücret, faiz, borç ve ortaklık gibi konular mezheplerde ayrıntılı işlenir; kendi durumun için bir âlime danış. İktisat kaynakları IEF Kütüphanesi'ndedir.",
+     en:"\"No one has eaten better food than what they earned with their own hands.\" Lawful income is the ground that worship and prayer stand on. Wages, interest, debt and partnership are treated in detail by the schools; ask a scholar about your own case. Economics sources live in your IEF Library."},
+  ev:[["Buhârî, Büyû' 15 (no. 2072)","HD01"],["TDV İlmihal II","FQ01"],["Zuhaylî, el-Fıkhu'l-İslâmî (karşılaştırmalı)","FQ12"]],
+  r:{tr:"Kazancında içini rahatsız eden bir nokta var mı?",en:"Is there anything about your income that unsettles you?"},
+  p:{tr:"Bir âlime sorman gereken soruyu açıkça yaz.",en:"Write down, plainly, the question you need to ask a scholar."}},
+ {id:"rapor",d:"is",lv:2,
+  t:{tr:"Islak buğday yığını",en:"The wet heap of grain"},
+  b:{tr:"Resûlullah ﷺ bir buğday yığınına elini sokup altının ıslak olduğunu görünce \"Aldatan bizden değildir\" buyurdu. Üstü iyi görünüp altı eksik olan bir rapor da ıslak buğday yığınıdır. Doğruluk bazen bedel ister; güvenli bir sonraki adım düşün: rakamı düzelt, varsayımı açıkça yaz, gerekirse yöneticinle konuş.",
+     en:"The Prophet ﷺ put his hand into a heap of grain, found it wet underneath, and said: \"Whoever cheats is not of us.\" A report that looks fine on top but is hollow underneath is the same wet heap. Honesty can cost something, so plan a safe next step: correct the figure, state the assumption, and raise it with your manager if needed."},
+  ev:[["Müslim, Îmân 164 (no. 102)","HD02"]],
+  r:{tr:"İşinde \"altı ıslak\" kalmış bir şey var mı?",en:"Is anything in your work wet underneath?"},
+  p:{tr:"Göndereceğin bir raporda bir rakamı kaynağıyla karşılaştır.",en:"Check one figure in a report you're about to send against its source."}},
+ {id:"hediye",d:"is",lv:2,
+  t:{tr:"Hediye mi, görev mi?",en:"A gift, or part of the job?"},
+  b:{tr:"Zekât toplamaya gönderilen bir görevli dönünce \"Bu sizin, bu da bana hediye edildi\" dedi. Resûlullah ﷺ, evinde otursaydı o hediyenin ona gelip gelmeyeceğini sordu. Görev sebebiyle gelen hediye görevin emanetine dahildir. Kurum politikan için şirketinin etik birimine, dinî hüküm için bir âlime danış.",
+     en:"An official sent to collect zakat came back saying: \"This is yours, and this was given to me as a gift.\" The Prophet ﷺ asked whether the gift would have come had he sat at home. A gift that comes because of your position belongs to the trust of that position. Ask your company's ethics function about policy, and a scholar about the ruling."},
+  ev:[["Buhârî, Ahkâm 24 (no. 7174)","HD01"],["Müslim, İmâre 26 (no. 1832)","HD02"]],
+  r:{tr:"Bu işte olmasaydın sana hangi hediyeler gelmezdi?",en:"Which gifts would stop if you left this job?"},
+  p:{tr:"Şirketinin hediye politikasını oku; aldığın bir hediye varsa bildir.",en:"Read your company's gift policy, and declare any gift you've received."}},
+ {id:"guclu",pl:{tr:"Ertelediğin faydalı bir işe küçük bir başlangıç yap.",en:"Make a small start on a useful task you've been putting off."},sug:true,d:"beden",lv:2,
+  t:{tr:"Güçlü mümin",en:"The strong believer"},
+  b:{tr:"\"Güçlü mümin, zayıf müminden daha hayırlı ve Allah'a daha sevimlidir; her birinde hayır vardır. Sana fayda verecek şeye hırslı ol, Allah'tan yardım iste ve âciz olma.\" Güç beden, bilgi, irade ve beceri olarak anlaşılabilir.",
+     en:"\"The strong believer is better and more beloved to Allah than the weak believer, and there is good in both. Be keen on what benefits you, seek Allah's help, and do not give up.\" Strength can mean body, knowledge, will and skill."},
+  ev:[["Müslim, Kader 34 (no. 2664)","HD02"]],
+  r:{tr:"Hangi alanda \"âciz olma\" emri sana hitap ediyor?",en:"Where does \"do not give up\" speak to you?"},
+  p:{tr:"Ertelediğin faydalı bir işin ilk on dakikasını bugün yap.",en:"Do the first ten minutes of a useful task you've been putting off."}},
+ {id:"hizmet",pl:{tr:"Bu hafta karşılık beklemeden birine yardım et.",en:"This week, help someone without expecting anything back."},sug:true,d:"aile",lv:2,
+  t:{tr:"Kardeşinin yardımında",en:"In your brother's help"},
+  b:{tr:"\"Kul, kardeşinin yardımında olduğu sürece Allah da onun yardımındadır.\" Hizmet, bu yolun görünmeyen yüzüdür. Tasavvuf klasikleri hizmeti nefis terbiyesinin temel yollarından biri olarak anlatır.",
+     en:"\"Allah is in the help of His servant as long as the servant is in the help of his brother.\" Service is the unseen face of this path. The classics of tasawwuf describe it as one of the main ways the self is trained."},
+  ev:[["Müslim, Zikir 38 (no. 2699)","HD02"],["Kuşeyrî Risâlesi","TS02"]],
+  r:{tr:"Kimin yardımına ihtiyacı olduğunu biliyorsun ama görmezden geliyorsun?",en:"Whose need do you know about but keep overlooking?"},
+  p:{tr:"Bu hafta karşılık beklemeden birine bir saat ayır.",en:"This week, give someone an hour without expecting anything back."}},
+ {id:"tevekkul",d:"iman",lv:2,
+  t:{tr:"Bağla ve tevekkül et",en:"Tie it, then trust"},
+  b:{tr:"\"Kim Allah'tan sakınırsa Allah ona bir çıkış yolu açar… Kim Allah'a tevekkül ederse O ona yeter.\" Devesini bağlamadan tevekkül ettiğini söyleyen kişiye \"Onu bağla ve tevekkül et\" buyrulmuştur. Tevekkül, sebebe sarılıp sonucu Allah'a bırakmaktır.",
+     en:"\"Whoever is mindful of Allah, He makes a way out for him… and whoever relies on Allah, He is enough for him.\" To a man who left his camel untied in the name of trust, the Prophet ﷺ said: \"Tie it and rely on Allah.\" Trust means taking the means and leaving the outcome to Allah."},
+  ev:[["Talâk 65:2–3","QK02"],["Tirmizî, Kıyâme 60 (no. 2517)","HD03"]],
+  r:{tr:"Hangi kaygında sebebi ihmal ediyorsun, hangisinde sonucu bırakamıyorsun?",en:"In which worry are you neglecting the means, and in which can you not let go of the outcome?"},
+  p:{tr:"Bir kaygın için yapabileceğin son adımı yap; sonucu duada bırak.",en:"Take the last step you can on one worry, then leave the result in du'a."}},
+ {id:"olum",d:"ahiret",lv:1,
+  t:{tr:"Ölümü hatırlamak",en:"Remembering death"},
+  b:{tr:"\"Lezzetleri yok edeni, ölümü çok anın.\" Akıllı kişi, nefsini hesaba çeken ve ölümden sonrası için çalışandır. Ölümü hatırlamak karamsarlık değil, önceliklerin netleşmesidir.",
+     en:"\"Remember often the destroyer of pleasures: death.\" The wise one is he who takes himself to account and works for what comes after death. Remembering death is not gloom. It is clarity about priorities."},
+  ev:[["Tirmizî, Zühd 4 (no. 2307)","HD03"],["Tirmizî, Kıyâme 25 (no. 2459)","HD03",{tr:"\"akıllı kişi\" rivayeti: derecesi HD03'te kontrol edilecek",en:"the \"wise one\" report: grading to be checked in HD03"}]],
+  r:{tr:"Bu hafta son haftan olsaydı neyi farklı yapardın?",en:"If this were your last week, what would you do differently?"},
+  p:{tr:"Bir borcunu öde, ödünç aldığın bir şeyi iade et ya da vasiyet notlarını güncelle.",en:"Pay a debt, return something borrowed, or update your will notes."}},
+ {id:"muhabbet",pl:{tr:"Bir namazdan sonra Peygamber'e ﷺ salavat getir.",en:"After a prayer, send blessings on the Prophet ﷺ."},sug:true,d:"kalp",lv:3,
+  t:{tr:"Sevgi ve salavat",en:"Love and blessings on the Prophet"},
+  b:{tr:"\"Allah onları sever, onlar da Allah'ı sever.\" Nafile hadisi yakınlığın sonunu sevgiyle anlatır. Resûlullah ﷺ, kendisine bir salavat getirene Allah'ın on rahmet edeceğini bildirir. Kütüphanendeki Delâilü'l-Hayrât (ZK04) klasik bir salavat derlemesidir.",
+     en:"\"He loves them and they love Him.\" The hadith of voluntary deeds describes the end of nearness as love. The Prophet ﷺ said that whoever sends one blessing on him, Allah sends ten upon them. Dala'il al-Khayrat in your library (ZK04) is a classic collection of such blessings."},
+  ev:[["Mâide 5:54","QK02"],["Müslim, Salât 70 (no. 408)","HD02"],["Delâilü'l-Hayrât","ZK04"]],
+  r:{tr:"Allah'ı sevdiğini nasıl anlıyorsun?",en:"How do you know that you love Allah?"},
+  p:{tr:"Bir namazdan sonra on salavat getir.",en:"After one prayer, send ten blessings on the Prophet ﷺ."}},
+ {id:"ihlas",d:"kalp",lv:3,secret:true,
+  t:{tr:"İhlâs: yalnız O'nun için",en:"Sincerity: for Him alone"},
+  b:{tr:"\"Onlara, dini yalnız O'na has kılarak Allah'a kulluk etmeleri emredildi.\" \"Kim Rabbine kavuşmayı umuyorsa salih amel işlesin ve Rabbine kullukta kimseyi ortak koşmasın.\" Gazzâlî, İhyâ'nın makam sevgisi ve riya kitabında riyanın gizli türlerini inceler. İhlâs ölçülemez; bu uygulama da onu ölçmeye çalışmaz.",
+     en:"\"They were commanded only to worship Allah, making the religion sincerely His.\" \"Whoever hopes to meet his Lord, let him do righteous deeds and associate no one in the worship of his Lord.\" In the Ihya's book on love of status and showing off, al-Ghazali examines the hidden forms of riya. Sincerity cannot be measured, and this app does not try."},
+  ev:[["Beyyine 98:5; Kehf 18:110","QK02"],["Gazzâlî, İhyâ, Zemmü'l-câh ve'r-riyâ","TS01"]],
+  r:{tr:"Kimse görmeseydi hâlâ yapacağın iyilik hangisi?",en:"Which good deed would you still do if no one ever saw it?"},
+  p:{tr:"Bugün kimsenin bilmeyeceği bir iyilik yap ve buraya da işaretleme.",en:"Do one good deed today that no one will know about, and don't mark it here either."}},
+ {id:"istikamet",d:"kalp",lv:3,
+  t:{tr:"İstikamet kerametten üstündür",en:"Steadfastness above wonders"},
+  b:{tr:"\"Emrolunduğun gibi dosdoğru ol.\" Bir sahâbî, başkasına sormasına gerek kalmayacak bir söz isteyince \"Allah'a iman ettim de, sonra dosdoğru ol\" cevabını aldı. Kuşeyrî Risâlesi'nin istikamet bâbında aktarılan söz: \"İstikamet sahibi ol, keramet talibi olma.\" Velîlik olağanüstü hâllerde değil; farzlarda sebatta ve ahlakta aranır.",
+     en:"\"Be upright as you have been commanded.\" A Companion asked for a word he would need to ask no one else about and was told: \"Say, I believe in Allah, then be upright.\" A saying reported in the chapter on steadfastness of al-Qushayri's Risala: \"Be a seeker of steadfastness, not of wonders.\" Friendship with Allah is sought in constancy in the obligations and in character, not in the extraordinary."},
+  ev:[["Hûd 11:112; Fussilet 41:30","QK02"],["Müslim, Îmân 62 (no. 38)","HD02"],["Kuşeyrî Risâlesi, İstikamet bâbı (söyleyeni doğrulanacak)","TS02"]],
+  r:{tr:"Bu yolda denediğin uygulamalardan hangileri kaldı?",en:"Which of the practices you've tried on this path have stayed?"},
+  p:{tr:"Kalanlardan birini seç ve onu sürdürmeye niyet et.",en:"Choose one that stayed and intend to keep it."}}
+];
+const ORDER = ["niyet","farz","amentu","ihsan","devam","kuran","dil","zikir","tevbe","emanet","aile","beden","siyer","muhasebe","malayani","sukur","sabir","helal","rapor","hediye","guclu","hizmet","tevekkul","olum","muhabbet","ihlas","istikamet"];
+const LBY = Object.fromEntries(L.map(x=>[x.id,x]));
+
+// Reading ladder, from _LIBRARY INDEX.csv (Islam Library, 30 Sep 2026)
+const SLM = [["QK01", "Kur'an-ı Kerim (mushaf)", "King Fahd Complex (Madinah mushaf); Diyanet (Hafız Osman hattı)", "Free files"], ["QK02", "Kur'an-ı Kerim Meali", "Diyanet İşleri Başkanlığı (Halil Altuntaş, Muzaffer Şahin)", "Free files"], ["QK03", "Kur'an Yolu: Türkçe Meal ve Tefsir (5 cilt)", "Hayreddin Karaman, Mustafa Çağrıcı, İbrahim Kâfi Dönmez, Sadrettin Gümüş", "Free files"], ["QK04", "Hak Dini Kur'an Dili", "Elmalılı M. Hamdi Yazır", "Free files"], ["QK05", "Te'vîlâtü'l-Kur'ân", "Ebû Mansûr el-Mâtürîdî", "Buy"], ["QK06", "Jami' al-Bayan 'an Ta'wil Ay al-Qur'an", "al-Tabari", "Buy · files in IEF Library"], ["QK07", "Tafsir al-Qur'an al-'Azim", "Ibn Kathir", "Buy · files in IEF Library"], ["QK08", "al-Jami' li-Ahkam al-Qur'an", "al-Qurtubi", "Buy · files in IEF Library"], ["QK09", "Mafatih al-Ghayb (al-Tafsir al-Kabir)", "Fakhr al-Din al-Razi", "Buy"], ["QK10", "Anwar al-Tanzil wa Asrar al-Ta'wil", "al-Baydawi", "Buy"], ["QK11", "Madarik al-Tanzil wa Haqa'iq al-Ta'wil", "Abu al-Barakat al-Nasafi", "Buy"], ["QK12", "Irshad al-'Aql al-Salim", "Ebussuûd Efendi", "Buy"], ["QK13", "Ruh al-Ma'ani", "al-Alusi", "Buy"], ["QK14", "al-Itqan fi 'Ulum al-Qur'an", "al-Suyuti", "Buy"], ["QK15", "Tefsir Usulü; Kur'an İlimleri", "İsmail Cerrahoğlu; Muhsin Demirci", "Buy"], ["QK16", "The Study Quran; The Qur'an (Abdel Haleem)", "S. H. Nasr et al.; M. A. S. Abdel Haleem", "Buy · files in IEF Library"], ["QK17", "al-Mufradat fi Gharib al-Qur'an; al-Mu'jam al-Mufahras", "al-Raghib al-Isfahani; M. Fu'ad 'Abd al-Baqi", "Buy"], ["QK18", "Tecvidli Kur'an Okuma Rehberi (Elif-Ba)", "Diyanet İşleri Başkanlığı", "Buy"], ["QK19", "el-Mukaddimetü'l-Cezeriyye; en-Neşr fi'l-Kırââti'l-Aşr", "Ibn al-Jazari", "Buy"], ["QK20", "Hırzü'l-Emânî (eş-Şâtıbiyye)", "al-Shatibi", "To find"], ["QK21", "Kur'an-ı Kerim Meali: Anlam ve Yorum Merkezli Çeviri", "Mustafa Öztürk", "Buy"], ["QK22", "et-Teysîr fi't-Tefsîr (Ömer Nesefî Tefsiri)", "Necmeddin Ömer en-Nesefî", "Free files"], ["HD01", "Sahih al-Bukhari", "al-Bukhari", "Free files"], ["HD02", "Sahih Muslim", "Muslim b. al-Hajjaj", "Buy · files in IEF Library"], ["HD03", "Kütüb-i Sitte: the four Sunan with the two Sahihs", "Abu Dawud, al-Tirmidhi, al-Nasa'i, Ibn Majah", "Buy · files in IEF Library"], ["HD04", "Hadislerle İslam (7 cilt)", "Diyanet İşleri Başkanlığı (ed. Mehmet Emin Özafşar et al.)", "Free files"], ["HD05", "Riyâzü's-Sâlihîn", "al-Nawawi", "Buy · files in IEF Library"], ["HD06", "el-Erbaûn (Kırk Hadis)", "al-Nawawi", "Buy · files in IEF Library"], ["HD07", "al-Muwatta'", "Malik b. Anas", "Buy · files in IEF Library"], ["HD08", "al-Musnad", "Ahmad b. Hanbal", "Buy"], ["HD09", "Fath al-Bari; 'Umdat al-Qari", "Ibn Hajar; Badr al-Din al-'Ayni", "Free files"], ["HD10", "al-Minhaj Sharh Sahih Muslim", "al-Nawawi", "Buy · files in IEF Library"], ["HD11", "Hadis usulü: Ibn al-Salah's Muqaddima; Turkish textbooks", "Ibn al-Salah; Talat Koçyiğit; M. Yaşar Kandemir", "Buy"], ["HD12", "Mishkat al-Masabih", "al-Khatib al-Tabrizi", "Buy"], ["ZK01", "el-Ezkâr (al-Adhkar)", "al-Nawawi", "Buy"], ["ZK02", "el-Hısnü'l-Hasîn", "Ibn al-Jazari", "Buy"], ["ZK03", "Hısnu'l-Müslim (Fortress of the Muslim)", "Sa'id b. Wahf al-Qahtani", "Free files"], ["ZK04", "Delâilü'l-Hayrât", "al-Jazuli", "Buy"], ["ZK05", "al-Wabil al-Sayyib; al-Kalim al-Tayyib", "Ibn al-Qayyim; Ibn Taymiyya", "Buy"], ["ZK06", "Dualar", "İsmail Karagöz (Diyanet İşleri Başkanlığı)", "Free online"], ["AK01", "el-Fıkhu'l-Ekber and İmâm-ı Âzam'ın Beş Eseri", "Abû Hanîfa (attr.); tr. Mustafa Öz", "Buy"], ["AK02", "el-Akîdetü't-Tahâviyye", "al-Tahawi", "Buy"], ["AK03", "Kitâbü't-Tevhîd", "Ebû Mansûr el-Mâtürîdî", "Buy"], ["AK04", "el-Akâidü'n-Nesefiyye with Teftâzânî's Şerh", "Najm al-Din al-Nasafi; Sa'd al-Din al-Taftazani", "Buy"], ["AK05", "Tebsıratü'l-Edille", "Ebü'l-Muîn en-Nesefî", "Buy"], ["AK06", "Maqalat al-Islamiyyin; al-Ibana", "Abu al-Hasan al-Ash'ari", "Free files"], ["AK07", "al-Milal wa'l-Nihal", "al-Shahrastani", "Buy"], ["AK08", "Kelâm İlmi Giriş; İslâm Akaidi", "Bekir Topaloğlu; Ömer Nasuhi Bilmen (Muvazzah İlm-i Kelâm)", "Buy"], ["AK09", "The Cambridge Companion to Classical Islamic Theology", "ed. Tim Winter", "Buy"], ["AK10", "al-Iqtisad fi al-I'tiqad", "al-Ghazali", "Buy"], ["AK11", "Mâtürîdiyye Akaidi (el-Bidâye fî Usûli'd-Dîn)", "Nûreddin es-Sâbûnî; tr. Bekir Topaloğlu", "Buy"], ["AK12", "İşârâtü'l-Merâm min İbârâti'l-İmâm", "Beyâzîzâde Ahmed Efendi", "Buy"], ["AK13", "Bahrü'l-Kelâm", "Ebü'l-Muîn en-Nesefî", "To find"], ["AK14", "Şerhu'l-Mevâkıf", "es-Seyyid eş-Şerîf el-Cürcânî (on 'Adud al-Din al-Iji)", "Free files"], ["FQ01", "İlmihal I–II (İman ve İbadetler; İslam ve Toplum)", "TDV İSAM heyet", "Buy"], ["FQ02", "Büyük İslam İlmihali", "Ömer Nasuhi Bilmen", "Buy"], ["FQ03", "Nûru'l-Îzâh and Merâki'l-Felâh", "al-Shurunbulali", "Buy"], ["FQ04", "el-Muhtasar", "al-Quduri", "Buy"], ["FQ05", "el-İhtiyâr li-Ta'lîli'l-Muhtâr", "al-Mawsili", "Buy"], ["FQ06", "Mülteka'l-Ebhur", "İbrâhîm el-Halebî", "Buy"], ["FQ07", "Hanafi long works: al-Hidaya, al-Mabsut, Bada'i', Radd al-Muhtar", "al-Marghinani; al-Sarakhsi; al-Kasani; Ibn 'Abidin", "Buy · files in IEF Library"], ["FQ08", "Dürerü'l-Hükkâm fî Şerhi Ğureri'l-Ahkâm", "Molla Hüsrev", "Free files"], ["FQ09", "al-Fatawa al-Hindiyya", "Mughal committee", "Free files"], ["FQ10", "Mecelle-i Ahkâm-ı Adliyye", "Ottoman committee", "Buy · files in IEF Library"], ["FQ11", "Other madhhabs: al-Mughni; Minhaj al-Talibin; Mukhtasar Khalil; Bidayat al-Mujtahid", "Ibn Qudama; al-Nawawi; Khalil; Ibn Rushd", "Buy · files in IEF Library"], ["FQ12", "el-Fıkhu'l-İslâmî ve Edilletühû", "Wahba al-Zuhayli", "Buy"], ["FQ13", "al-Mawsu'a al-Fiqhiyya al-Kuwaitiyya", "Kuwait Ministry of Awqaf", "Buy · files in IEF Library"], ["FQ14", "Fetvalar; Din İşleri Yüksek Kurulu kararları", "Diyanet İşleri Başkanlığı", "Free files"], ["FQ15", "Mukayeseli İslam Hukuku; İslam Hukuk Tarihi", "Hayreddin Karaman", "Buy"], ["FQ16", "Reliance of the Traveller ('Umdat al-Salik)", "Ibn al-Naqib, tr. Nuh Ha Mim Keller", "Buy"], ["FQ17", "Birgivî Vasiyetnâmesi (Kadızâde Şerhi)", "İmâm Birgivî; şerh: Kadızâde Ahmed b. Muhammed Emin", "Buy"], ["FQ18", "Mızraklı İlmihal", "anonymous (16th c.); ed. İsmail Kara", "Buy"], ["FQ19", "Zuhrü'l-Müteehhilîn ve'n-Nisâ fî Ta'rîfi'l-Athâr ve'd-Dimâ (Zahru'l-Muteahhilin)", "İmâm Birgivî (Birkevî), d. 981/1573", "Free online"], ["FQ20", "İslam Aile Hukuku; Women, Family, and Gender in Islamic Law", "Ahmet Yaman; Judith E. Tucker", "Buy"], ["FQ21", "Çocuklar için din kitapları (Diyanet çocuk yayınları)", "Diyanet İşleri Başkanlığı", "Free files"], ["US01", "er-Risâle", "al-Shafi'i", "Buy"], ["US02", "Hanafi usul: Usûlü's-Serahsî; Kenzü'l-Vüsûl (Pezdevî); Mir'âtü'l-Usûl", "al-Sarakhsi; al-Bazdawi; Molla Hüsrev", "Free files"], ["US03", "el-Müstasfâ", "al-Ghazali", "Buy"], ["US04", "el-Muvâfakât", "al-Shatibi", "Buy · files in IEF Library"], ["US05", "İslâm Hukuk İlminin Esasları (Usûlü'l-Fıkh)", "Zekiyyüddîn Şa'bân, tr. İbrahim Kâfi Dönmez", "Buy"], ["US06", "Principles of Islamic Jurisprudence; A History of Islamic Legal Theories", "M. H. Kamali; Wael Hallaq", "Buy · files in IEF Library"], ["US07", "Legal maxims: al-Ashbah wa'l-Naza'ir", "Ibn Nujaym; al-Suyuti", "Free files"], ["SR01", "es-Sîretü'n-Nebeviyye", "Ibn Hisham (from Ibn Ishaq)", "Free files"], ["SR02", "İslâm Peygamberi", "Muhammed Hamîdullah, tr. Salih Tuğ", "Buy"], ["SR03", "eş-Şifâ bi-Ta'rîfi Hukûki'l-Mustafâ", "Qadi 'Iyad", "Free files"], ["SR04", "eş-Şemâilü'l-Muhammediyye", "al-Tirmidhi", "Buy"], ["SR05", "er-Rahîku'l-Mahtûm", "Safiyyurrahman el-Mübârekfûrî", "Buy"], ["SR06", "Muhammad: His Life Based on the Earliest Sources", "Martin Lings", "Buy"], ["SR07", "et-Tabakâtü'l-Kübrâ", "Ibn Sa'd", "Free files"], ["TH01", "Târîhu'r-Rusül ve'l-Mülûk", "al-Tabari", "Free files"], ["TH02", "el-Kâmil fi't-Târîh", "Ibn al-Athir", "Free files"], ["TH03", "el-Bidâye ve'n-Nihâye", "Ibn Kathir", "Buy"], ["TH04", "The Venture of Islam (3 vols)", "Marshall G. S. Hodgson", "Buy"], ["TH05", "A History of Islamic Societies", "Ira M. Lapidus", "Buy"], ["TH06", "The New Cambridge History of Islam (6 vols)", "ed. Michael Cook et al.", "Buy"], ["TH07", "Osmanlı İmparatorluğu: Klasik Çağ (1300–1600)", "Halil İnalcık", "Buy"], ["TH08", "Fütûhu'l-Büldân", "al-Baladhuri", "Free files"], ["TH09", "Muqaddima", "Ibn Khaldun", "Buy · files in IEF Library"], ["BY01", "Siyeru A'lâmi'n-Nübelâ", "al-Dhahabi", "Buy"], ["BY02", "Vefeyâtü'l-A'yân", "Ibn Khallikan", "Free files"], ["BY03", "el-İsâbe fî Temyîzi's-Sahâbe", "Ibn Hajar", "Buy"], ["BY04", "eş-Şekâiku'n-Nu'mâniyye", "Taşköprizâde", "Free files"], ["BY05", "Hayâtü's-Sahâbe", "M. Yûsuf Kandehlevî", "Buy"], ["BY06", "Ebû Hanîfe; Mâlik; Şâfiî; İbn Hanbel", "Muhammad Abu Zahra", "Buy"], ["BY07", "Keşfü'z-Zunûn", "Kâtib Çelebi", "Free files"], ["TS01", "İhyâu Ulûmi'd-Dîn", "al-Ghazali", "Buy · files in IEF Library"], ["TS02", "er-Risâle (Kuşeyrî Risalesi)", "al-Qushayri", "Buy"], ["TS03", "Keşfü'l-Mahcûb", "al-Hujwiri", "Free files"], ["TS04", "Mesnevî", "Mawlana Jalal al-Din Rumi", "Buy"], ["TS05", "el-Hikemü'l-Atâiyye", "Ibn 'Ata' Allah al-Iskandari", "Buy"], ["TS06", "et-Tarîkatü'l-Muhammediyye", "İmâm Birgivî", "Buy"], ["TS07", "Ahlâk-ı Alâî", "Kınalızâde Ali Efendi", "Buy"], ["TS08", "Tehzîbü'l-Ahlâk; Edebü'd-Dünyâ ve'd-Dîn", "Miskawayh; al-Mawardi", "Buy"], ["TS09", "Bidâyetü'l-Hidâye; Eyyühe'l-Veled", "al-Ghazali", "Buy"], ["TS10", "Yunus Emre Dîvânı", "Yunus Emre", "Free files"], ["TS11", "Tasavvuf Terimleri Sözlüğü", "Süleyman Uludağ", "Buy"], ["DS01", "el-Munkız mine'd-Dalâl; Tehâfütü'l-Felâsife", "al-Ghazali", "Buy"], ["DS02", "Faslu'l-Makâl; Tehâfütü't-Tehâfüt", "Ibn Rushd", "Buy"], ["DS03", "Huccetullâhi'l-Bâliğa", "Shah Wali Allah al-Dihlawi", "Buy"], ["DS04", "The Reconstruction of Religious Thought in Islam", "Muhammad Iqbal", "Free files"], ["DS05", "God and Man in the Qur'an; Ethico-Religious Concepts in the Qur'an", "Toshihiko Izutsu", "Buy"], ["DS06", "Major Themes of the Qur'an; Islam", "Fazlur Rahman", "Buy"], ["DS07", "Buhranlarımız", "Said Halim Paşa", "Buy"], ["DS08", "Safahat", "Mehmet Âkif Ersoy", "Free online"], ["DS09", "The Impossible State; Shari'a", "Wael Hallaq", "Buy · files in IEF Library"], ["DS10", "İslâm'a Giriş (Introduction to Islam)", "Muhammed Hamîdullah", "Buy"], ["DS11", "İslam Hukukunda İctihad; İslam'ın Işığında Günün Meseleleri; Hayatımızdaki İslam", "Hayreddin Karaman", "Free online"], ["RF01", "TDV İslâm Ansiklopedisi", "TDV İSAM", "Free online"], ["RF02", "Encyclopaedia of Islam (2nd and 3rd eds)", "Brill", "Buy"], ["RF03", "al-Maktaba al-Shamila", "Shamela", "Free online"], ["RF04", "Arabic–English Lexicon", "E. W. Lane", "Free online"], ["RF05", "A Dictionary of Modern Written Arabic", "Hans Wehr, ed. J. M. Cowan", "Buy"], ["RF06", "Arapça–Türkçe Sözlük", "Serdar Mutçalı", "Buy"], ["RF07", "Lisânü'l-Arab", "Ibn Manzur", "Free files"], ["RF08", "Dini Kavramlar Sözlüğü", "Diyanet İşleri Başkanlığı", "Buy"], ["RF09", "el-Âcurrûmiyye; Emsile–Bina–Maksûd–İzhâr–Avâmil", "Ibn Âjurrûm; Ottoman medrese texts", "Free online"], ["RF10", "Elfiyye (with İbn Akîl's şerh)", "Ibn Mâlik; Ibn 'Aqil", "Free online"], ["RF11", "Arapça Dilbilgisi", "Mehmet Maksudoğlu", "Buy"], ["RF12", "A Grammar of the Arabic Language", "Caspari; tr. and ed. W. Wright (3rd ed. rev. W. Robertson Smith and M. J. de Goeje)", "Free files"], ["RF13", "el-Okyânûsu'l-Basît fî Tercemeti'l-Kâmûsi'l-Muhît", "Mütercim Âsım Efendi (from al-Fayruzabadi)", "Free files"]];
+const CAT = Object.fromEntries(SLM.map(r=>[r[0],r]));
+const BOOKS = [
+ [1,"QK02","Kur'an-ı Kerim Meali","Diyanet (Altuntaş & Şahin)","Free files"],
+ [1,"FQ01","İlmihal I–II","TDV İSAM heyeti","Buy"],
+ [1,"AK02","el-Akîdetü't-Tahâviyye","Tahâvî; şerh: E. Sifil","Buy"],
+ [1,"HD06","Kırk Hadis, İbn Receb şerhiyle","Nevevî; İbn Receb","Buy · files in IEF Library"],
+ [1,"ZK03","Hısnu'l-Müslim","Saîd b. Vehf el-Kahtânî","Free files"],
+ [1,"ZK06","Dualar","İsmail Karagöz (Diyanet)","Free online"],
+ [1,"SR02","İslâm Peygamberi","M. Hamîdullah, çev. S. Tuğ","Buy"],
+ [1,"TS09","Eyyühe'l-Veled; Bidâyetü'l-Hidâye","Gazzâlî","Buy"],
+ [2,"QK03","Kur'an Yolu (5 cilt)","Karaman, Çağrıcı, Dönmez, Gümüş","Free files"],
+ [2,"HD05","Riyâzü's-Sâlihîn","Nevevî; Kandemir şerhi","Buy · files in IEF Library"],
+ [2,"HD04","Hadislerle İslam (7 cilt)","Diyanet","Free files"],
+ [2,"FQ03","Nûru'l-Îzâh ve Merâki'l-Felâh","Şürünbülâlî","Buy"],
+ [2,"AK01","İmâm-ı Âzam'ın Beş Eseri","Ebû Hanîfe (nisbet); çev. M. Öz","Buy"],
+ [2,"ZK01","el-Ezkâr","Nevevî; Kandemir","Buy"],
+ [2,"SR04","Şemâil-i Şerîf Şerhi","Tirmizî; Kandemir","Buy"],
+ [2,"BY05","Hayâtü's-Sahâbe","M. Yûsuf Kandehlevî","Buy"],
+ [2,"TS06","Tarîkat-ı Muhammediyye","İmâm Birgivî","Buy"],
+ [3,"TS01","İhyâu Ulûmi'd-Dîn","Gazzâlî","Buy · files in IEF Library"],
+ [3,"TS02","Kuşeyrî Risâlesi","Kuşeyrî; haz. S. Uludağ","Buy"],
+ [3,"TS03","Keşfü'l-Mahcûb","Hücvîrî; çev. S. Uludağ","Free files"],
+ [3,"TS05","Hikem-i Atâiyye","İbn Atâullah; Hüsnü Geçer şerhi","Buy"],
+ [3,"SR03","Şifâ-i Şerîf","Kādî İyâz; Kandemir","Buy"],
+ [3,"ZK04","Delâilü'l-Hayrât","Cezûlî","Buy"],
+ [3,"QK04","Hak Dini Kur'an Dili","Elmalılı M. Hamdi Yazır","Free files"],
+ [3,"AK04","Şerhu'l-Akâid","Nesefî; Teftâzânî","Buy"],
+ [3,"TS04","Mesnevî","Mevlânâ","Buy"],
+ [3,"TS10","Yunus Emre Dîvânı","Yunus Emre","Free online"],
+ [3,"RF01","TDV İslâm Ansiklopedisi","TDV İSAM","Free online"]
+];
+const STAGES = {
+ 1:{tr:"Başlangıç",en:"Beginning",d:{tr:"İnanç, ibadet ve günlük duanın sağlam zemini.",en:"Sound ground in belief, worship and daily prayer."}},
+ 2:{tr:"Yerleşme",en:"Settling",d:{tr:"Hadis ve ahlakla gündelik hayatı biçimlendirme.",en:"Shaping daily life through hadith and character."}},
+ 3:{tr:"Derinleşme",en:"Deepening",d:{tr:"Kalp, nefis ve sevgi üzerine klasikler; bir hocayla okunması tavsiye edilir.",en:"The classics on the heart, the self and love; best read with a teacher."}}
+};
+const STATUS = {
+ "Free files":{tr:"Dosya kütüphanede",en:"File in library",free:1},
+ "Free online":{tr:"Çevrimiçi ücretsiz",en:"Free online",free:1},
+ "Buy":{tr:"Satın alınacak",en:"To buy"},
+ "Buy · files in IEF Library":{tr:"Dosya IEF'de",en:"File in IEF Library",free:1}
+};
+const PRAYERS = [["fajr",{tr:"Sabah",en:"Fajr"}],["dhuhr",{tr:"Öğle",en:"Dhuhr"}],["asr",{tr:"İkindi",en:"Asr"}],["maghrib",{tr:"Akşam",en:"Maghrib"}],["isha",{tr:"Yatsı",en:"Isha"}]];
+
+const UI = {
+ sub:{tr:"yakınlık yolunda günlük defter",en:"a daily notebook for the path of nearness"},
+ settings:{tr:"Ayarlar",en:"Settings"},
+ tabs:{today:{tr:"Bugün",en:"Today"},path:{tr:"Yol",en:"Path"},lib:{tr:"Kitaplık",en:"Library"},guide:{tr:"Rehber",en:"Guide"}},
+ setupTitle:{tr:"Yolunu kur",en:"Set up your path"},
+ setupText:{tr:"Bir dakikada: mezhebin ve odak alanların.",en:"One minute: your school and your focus areas."},
+ setupBtn:{tr:"Başla",en:"Start"},
+ returnTitle:{tr:"Hoş geldin",en:"Welcome back"},
+ returnText:{tr:"Ara vermek yolun parçasıdır; tevbe dönmek demektir. \"Allah'ın rahmetinden ümit kesmeyin\" (Zümer 39:53 · QK02). Kaldığın yerden değil, bugünden başla. Bu uygulamayı kullanmak isteğe bağlıdır; ara vermek başarısızlık değildir.",en:"Pauses are part of the path, and tawba means returning. \"Do not despair of Allah's mercy\" (Zumar 39:53 · QK02). Start from today, not from where you left off. Using this app is optional; a pause is not a failure."},
+ farzTitle:{tr:"Önce farzlar",en:"Obligations first"},
+ farzNote:{tr:"Yalnız bugün için, yalnız sana özel. Geçmiş gösterilmez, sayılmaz. Kaçırılan farz namaz kaza edilir; ayrıntı için mezhebinin ilmihali (FQ01).",en:"For today only, and private to you. No history is shown or counted. A missed obligatory prayer is made up (qada); see your school's manual (FQ01)."},
+ s1:{tr:"İlim",en:"Learn"},s2:{tr:"Tefekkür",en:"Reflect"},s3:{tr:"Amel",en:"Act"},s4:{tr:"Muhasebe",en:"Review"},
+ s1h:{tr:"bugünün dersi",en:"today's lesson"},s2h:{tr:"bir soru",en:"one question"},s3h:{tr:"bir küçük adım",en:"one small step"},s4h:{tr:"akşam, birkaç dakika",en:"evening, a few minutes"},
+ studied:{tr:"Okudum",en:"Studied"},studiedOn:{tr:"Okundu",en:"Studied"},
+ other:{tr:"Başka ders seç",en:"Choose another lesson"},
+ privateNote:{tr:"Rehber'e asla gönderilmez. Bu cihazda ve Claude içinde açıldığında özel uygulama depolamanda saklanır.",en:"Never sent to the Guide. Kept on this device and, inside Claude, in your private app storage."},
+ reflectPh:{tr:"İstersen birkaç satır… (isteğe bağlı)",en:"A few lines if you like… (optional)"},
+ commit:{tr:"Bugün deneyeceğim",en:"I'll try this today"},
+ how:{tr:"Nasıl geçti?",en:"How did it go?"},
+ r_did:{tr:"Yaptım",en:"Did it"},r_part:{tr:"Kısmen",en:"Partly"},r_not:{tr:"Bugün olmadı",en:"Not today"},
+ r_notMsg:{tr:"Olur. Yarın yeniden, ya da daha küçük bir adımla.",en:"That's fine. Try again tomorrow, or with a smaller step."},
+ secretMsg:{tr:"Bu amelin işaret kutusu yok. Kasıtlı olarak.",en:"This one has no checkbox, on purpose."},
+ m1:{tr:"Bugünün bir nimeti (şükür)",en:"One blessing from today (gratitude)"},
+ m2:{tr:"İstiğfar edeceğin bir şey. Yazman gerekmiyor; sadece dur ve iste.",en:"Something to ask forgiveness for. Don't write it: just pause and ask."},
+ m3:{tr:"Yarın için bir niyet",en:"One intention for tomorrow"},
+ m2btn:{tr:"İstiğfar ettim",en:"I asked forgiveness"},
+ week:{tr:"Bu hafta",en:"This week"},
+ weekText:{tr:(a,b)=>`${a} ders okudun, ${b} küçük adım denedin. Bu bir öğrenme özeti; manevî bir ölçü değil.`,en:(a,b)=>`You studied ${a} lessons and tried ${b} small steps. This is a study summary, not a spiritual measure.`},
+ pathEyebrow:{tr:"Yûnus 10:62–63",en:"Yunus 10:62–63"},
+ pathMean:{tr:"Bilesiniz ki Allah'ın velîlerine korku yoktur, onlar üzülmeyecekler de. Onlar iman edip takvâ sahibi olanlardır.",en:"Surely the friends of Allah: no fear shall be on them, nor shall they grieve. Those who believe and are mindful of Him."},
+ pathIntro:{tr:"Ehl-i sünnete göre velî; iman eden, farzları gözeten, nafilelerle Allah'a yaklaşan ve istikamet üzere yaşayan kuldur. Velîlik bir makam olarak ilan edilmez, ölçülmez ve kimse kendisi için iddia etmez; hiçbir velî bir peygamberin derecesine ulaşamaz (Tahâvî Akîdesi). Bu uygulama sana makam vermez. Yolu, geleneğin tarif ettiği sırayla yürümene yardım eder.",en:"In Sunni teaching a walī is a servant who believes, keeps the obligations, draws near to Allah through voluntary deeds and lives with steadfastness. Friendship with Allah is not announced as a rank, not measured, and not claimed for oneself; and no walī reaches the rank of a prophet (Creed of al-Tahawi). This app gives you no rank. It helps you walk the path in the order the tradition describes."},
+ moves:[{t:{tr:"Farâiz",en:"Obligations"},s:{tr:"İnanç ve farzlar: yolun zemini",en:"Belief and the obligations: the ground"}},{t:{tr:"Nevâfil",en:"Voluntary deeds"},s:{tr:"Zikir, Kur'an, hizmet: yaklaşma",en:"Dhikr, Qur'an, service: drawing near"}},{t:{tr:"İhsân",en:"Ihsan"},s:{tr:"İhlâs, istikamet, sevgi: derinleşme",en:"Sincerity, steadfastness, love: deepening"}}],
+ movesSrc:{tr:"Sıra, nafile hadisine göredir: Buhârî, Rikâk 38 (no. 6502) · HD01",en:"The order follows the hadith of voluntary deeds: Bukhari, Riqaq 38 (no. 6502) · HD01"},
+ domainsTitle:{tr:"Alanlar",en:"Areas"},
+ domainsNote:{tr:"Kutucuklar okuduğun dersleri gösterir: bir öğrenme kaydıdır, manevî derece değildir. Seviyeler malzemenin zorluğunu anlatır, manevî bir derece değildir. Her alanda ayrı hızla ilerleyebilirsin. Sıra uygulamanın editoryal önerisidir; istediğin dersi kendin seçebilirsin.",en:"The marks show lessons you've studied: a record of learning, not a spiritual degree. Levels describe how demanding the material is, not a spiritual degree. Each area moves at its own pace. The order is the app's editorial suggestion; you can choose any lesson yourself."},
+ teacher:{tr:"Bu uygulama bir not defteri ve çalışma arkadaşıdır; bir hocanın, ailenin ve cemaatin yerini tutmaz.",en:"This app is a notebook and study companion; it does not replace a teacher, your family or your community."},
+ libIntro:{tr:"SLM Kütüphanen'den seçilmiş okuma merdiveni. Kodlar kütüphanedeki klasörlere karşılık gelir (ör. HD05 → 02 Hadith\\HD05). Durum, 30 Eylül 2026 dizinine göredir.",en:"A reading ladder chosen from your SLM Library. Codes match the library folders (e.g. HD05 → 02 Hadith\\HD05). Status is from the 30 Sep 2026 index."},
+ my:{none:{tr:"Okuyacağım",en:"To read"},reading:{tr:"Okuyorum",en:"Reading"},done:{tr:"Bitirdim",en:"Finished"}},
+ guideIntro:{tr:"Dersler, kaynaklar ve uygulama hakkında soru sor. İslami sorularda Rehber yalnız pasaj desteği kontrol edilmiş kaynaklara dayanarak bir şey söyler. Bu pilotta henüz hiçbir pasaj kontrol edilmedi; bu yüzden İslami sorularda \"burada destekleyen bir metin yok\" der ve nereden okuyabileceğini gösterir: ilgili ders ve SLM Kütüphanen'deki kitap. Öğrenme, alışkanlık ya da uygulamayla ilgili sorularda normal yardım eder. Rehber bir şeyh ya da müftü değildir; makamını değerlendirmez, bağlayıcı fetva vermez, kendi ibadetinin geçerli olup olmadığını onaylamaz. Tefekkür ve muhasebe notların ona gönderilmez.",en:"Ask about the lessons, the sources and putting them into practice. On Islamic questions the Guide only states what a source supports once that passage has been checked. In this pilot no passage has been checked yet, so on Islamic questions it says no supporting passage is available here and shows where to read: the related lesson and the book in your SLM Library. For learning, habits or using the app it helps as usual. The Guide is not a shaykh or a mufti; it won't assess your state, give binding fatwas or confirm whether your own worship is valid. Your reflection and review notes are never sent to it."},
+ ask:{tr:"Sor",en:"Ask"},stop:{tr:"Durdur",en:"Stop"},
+ askPh:{tr:"Örn. Sabah namazına kalkmakta zorlanıyorum, nereden başlayayım?",en:"e.g. I struggle to wake for Fajr. Where do I start?"},
+ thinking:{tr:"Düşünüyor…",en:"Thinking…"},
+ guideOff:{tr:"Rehber bu görünümde kullanılamıyor. Sayfayı Claude içinde açtığında çalışır.",en:"The Guide isn't available in this view. It works when the page is opened inside Claude."},
+ guideDenied:{tr:"Rehber'e izin verilmedi. Sayfayı yeniden açtığında tekrar sorulur.",en:"The Guide wasn't allowed. You'll be asked again next time you open the page."},
+ guideErr:{tr:"Yanıt alınamadı. Biraz sonra yeniden dene.",en:"No answer came back. Try again in a moment."},
+ suggest:[{tr:"Bugünkü dersi günlük hayatıma nasıl uygularım?",en:"How do I apply today's lesson in my daily life?"},{tr:"Farzlarda eksiğim var; kaza namazına nasıl başlarım?",en:"I have gaps in my obligations. How do I start making up prayers?"},{tr:"İhyâ'yı okumaya nereden başlamalıyım?",en:"Where should I start reading the Ihya?"}],
+ storeDb:{tr:"Kayıtların bu cihazda ve Claude içindeki özel uygulama depolamanda saklanıyor.",en:"Your entries are kept on this device and in your private app storage inside Claude."},
+ storeLocal:{tr:"Kayıtların yalnız bu tarayıcıda saklanıyor. Tarayıcı bir süre kullanılmayan verileri silebilir; yedek için verilerini indir.",en:"Your entries are kept in this browser only. Browsers may clear data that has not been used for a while; download your data as a backup."},
+ saved:{tr:"Kaydedildi",en:"Saved"},
+ profile:{tr:"Profil",en:"Profile"},
+ name:{tr:"Adın (isteğe bağlı)",en:"Your name (optional)"},
+ stage:{tr:"Hayat dönemi",en:"Life stage"},
+ stages:{adult:{tr:"Yetişkin",en:"Adult"},young:{tr:"Genç",en:"Young adult"},parent:{tr:"Çocuğuna eşlik eden ebeveyn",en:"Parent guiding a child"},elder:{tr:"İleri yaş",en:"Later life"}},
+ stageNote:{tr:"Bu pilot yetişkin içeriğiyle başlıyor; çocuk ve aile yolları sonraki aşamada.",en:"This pilot starts with adult content; child and family paths come later."},
+ madhhab:{tr:"Uyguladığın mezhep",en:"School you follow"},
+ madh:{hanafi:{tr:"Hanefî",en:"Hanafi"},shafii:{tr:"Şâfiî",en:"Shafi'i"},maliki:{tr:"Mâlikî",en:"Maliki"},hanbali:{tr:"Hanbelî",en:"Hanbali"},open:{tr:"Henüz karar vermedim",en:"Not decided yet"}},
+ focus:{tr:"Odak alanları (ders önerisi bunlardan başlar)",en:"Focus areas (lesson suggestions start here)"},
+ prayerToggle:{tr:"Bugünün namaz işaretlerini göster",en:"Show today's prayer marks"},
+ principlesT:{tr:"Bu uygulamanın ilkeleri",en:"How this app works"},
+ principles:{tr:["Velâyet, ihlâs, takvâ ya da nefis makamı için puan, rütbe veya seviye yoktur.","Seri sayacı, liderlik tablosu ve biriken görev borcu yoktur. Ara verirsen sadece dönersin.","Farzlar, uygulamanın isteğe bağlı hedeflerinden ayrı tutulur.","Tefekkür ve muhasebe isteğe bağlıdır, not verilmez ve Rehber'e gönderilmez.","Mezhep görüşleri adıyla verilir; tek görüş bütün İslam adına sunulmaz.","İslami içerik yalnız SLM Kütüphanen'deki eserlerden gelir; öğrenme psikolojisi, tasarım gibi diğer konular her kaynaktan olabilir.","Kaynaklar henüz bir insan tarafından baskıyla karşılaştırılmadı: hepsi \"doğrulanmadı\" olarak gösterilir. Hadis numaraları yaygın numaralamadır, kontrol edilmedi.","Bu uygulama bir hocanın, bir âlimin ya da gerektiğinde bir uzmanın yerine geçmez."],en:["There are no points, ranks or levels for friendship with Allah, sincerity, piety or stations of the self.","No streak counter, no leaderboard, no pile of overdue tasks. If you pause, you simply return.","The obligations are kept apart from the app's optional goals.","Reflection and review are optional, never graded, and never sent to the Guide.","Rulings are given with the name of the school; no single view is presented as all of Islam.","Islamic content comes only from works in your SLM Library; other topics, like the psychology of learning or design, may come from any source.","No source has yet been checked against its edition by a person, so all are shown as unverified. Hadith numbers use the common numbering, unchecked.","This app does not replace a teacher, a scholar, or when needed a professional."]},
+ exportBtn:{tr:"Verilerimi indir (JSON)",en:"Download my data (JSON)"},
+ wipeBtn:{tr:"Tüm verilerimi sil",en:"Delete all my data"},
+ wipeConfirm:{tr:"Emin misin? Silmek için tekrar bas.",en:"Are you sure? Press again to delete."},
+ wiped:{tr:"Silindi",en:"Deleted"},
+ close:{tr:"Kapat",en:"Close"},save:{tr:"Kaydet",en:"Save"},
+ pilot:{tr:"Çalışma adı ve pilot sürüm. İçerik uzman incelemesinden geçmedi.",en:"Working name and pilot version. Content has not yet been reviewed by a scholar."},
+ min:{tr:"dk",en:"min"},
+ evHead:{tr:"Kaynaklar",en:"Sources"},
+ evNote:{tr:"Hepsi SLM Kütüphanen'den. Henüz baskıyla karşılaştırılmadı. Hadis numaraları yaygın numaralamadır, kontrol edilmedi. Tırnak içindekiler anlam aktarımıdır, kelimesi kelimesine çeviri değildir. Her noktanın ilgili pasajla desteklenip desteklenmediği henüz kontrol edilmedi. Ders sırası ve uygulama adımları uygulamanın önerisidir.",en:"All from your SLM Library. Not yet checked against the edition. Hadith numbers use the common numbering, unchecked. Text in quotes gives the meaning, not a word-for-word translation. Whether each point is supported by the passage has not yet been checked. Lesson order and practice steps are the app's suggestions."},
+ sugNote:{tr:"İsteğe bağlı, dinî bir hüküm değil: miktar uygulamanın önerisidir.",en:"Optional, not a ruling: the amount is the app's suggestion."},
+ naBtn:{tr:"Bugün geçerli değil",en:"Not applicable today"},
+ naMsg:{tr:"Tamam. Sebep gerekmez.",en:"Noted. No reason needed."},
+ farzPrivate:{tr:"İsteğe bağlı. Yalnız bu cihazda, bugün için tutulur; sayfayı yenilesen de kalır, gün bitince silinir. Hiçbir yere gönderilmez, dışa aktarılmaz; geçmiş gösterilmez, sayılmaz.",en:"Optional. Kept on this device for today only: it survives a refresh and is cleared when the day ends. Never synced or exported; no history is shown or counted."},
+ farzSchool:{
+   hanafi:{tr:"Hanefî: kaçırılan farz namaz kaza edilir (FQ01, FQ03 · doğrulanmadı).",en:"Hanafi: a missed obligatory prayer is made up (qada) (FQ01, FQ03 · unverified)."},
+   other:{tr:"Bu mezhep için uygulamada henüz kontrol edilmiş bir not yok. Kütüphanende: FQ11 (diğer mezheplerin temel eserleri), FQ12 (karşılaştırmalı).",en:"The app has no checked note for this school yet. In your library: FQ11 (standard works of the other schools), FQ12 (comparative)."},
+   open:{tr:"Mezhebini Ayarlar'dan seçersen buraya o mezhebin notu gelir. Genel başvuru: FQ01.",en:"Choose your school in Settings to see that school's note here. General reference: FQ01."}},
+ keepBtn:{tr:"Bu adımı listeme ekle",en:"Keep this practice"},
+ kept:{tr:"Listende",en:"In your list"},
+ myPractices:{tr:"Sürdürdüğüm adımlar",en:"Practices I keep"},
+ myPracticesNote:{tr:"Kendi seçtiğin yer imleri, en fazla üç. Sayılmaz, hatırlatılmaz, bir yükümlülük değildir.",en:"Bookmarks you chose, up to three. Not counted, no reminders, not an obligation."},
+ remove:{tr:"Çıkar",en:"Remove"},
+ full:{tr:"Liste dolu (3). Önce birini çıkar.",en:"Your list is full (3). Remove one first."},
+ weekLink:{tr:"Bu haftaya bakış (isteğe bağlı)",en:"Look back on the week (optional)"},
+ weekTitle:{tr:"Bu haftaya bakış",en:"Look back on the week"},
+ weekIntro:{tr:"İstersen bu hafta denediğin uygulamalara göz at: saklamak, küçültmek ya da başkasıyla değiştirmek istediğin var mı? Bakmasan da olur; hiçbir şey eksik sayılmaz.",en:"If you like, glance at the practices you tried this week: any you want to keep, make smaller or swap? You can skip this; nothing counts as missed."},
+ weekNone:{tr:"Bu hafta denenmiş bir uygulama kaydı yok. Sorun değil.",en:"No practices tried this week on record. That's fine."},
+ wKeep:{tr:"Sakla",en:"Keep"},wLight:{tr:"Küçült",en:"Make smaller"},wReplace:{tr:"Başka bir dersle değiştir",en:"Swap for another lesson"},
+ wLightMsg:{tr:"Daha küçük bir sürümünü kendi sözlerinle aşağıya yazıp ekleyebilirsin.",en:"Write a smaller version in your own words below and add it."},
+ addOwn:{tr:"Kendi uygulamanı ekle",en:"Add your own practice"},
+ addOwnPh:{tr:"Örn. sabah namazından sonra bir ayet",en:"e.g. one verse after Fajr"},
+ add:{tr:"Ekle",en:"Add"},
+ studiedWeek:{tr:"Bu hafta okuduğun dersler",en:"Lessons you studied this week"},
+ helpTitle:{tr:"Bir insana danışmak",en:"Talk to a person"},
+ helpText:{tr:"Dinî bir hüküm ya da kendi durumun için bir âlime danış: mahallendeki caminin imamı veya müftülük. İstemediğin, ibadetle ilgili şüpheler, kontrol etme ya da suçluluk duygusu sıkıntı veriyor ya da günlük hayatını aksatıyorsa bir doktor ya da psikologla konuşmayı düşün. Acil durumda yerel acil numaranı ara (Türkiye'de ve AB'de 112).",en:"For a religious ruling or your own situation, ask a qualified scholar: your local mosque's imam or the müftülük. If unwanted worship-related doubts, checking or guilt cause distress or interfere with daily life, consider talking to a doctor or psychologist. In an emergency, call your local emergency number (112 in Türkiye and the EU)."},
+ discTitle:{tr:"Rehber'e ne gönderilir?",en:"What the Guide sends"},
+ discText:{tr:"Soru sorduğunda bu sayfa Claude'a, senin Claude hesabın üzerinden şunları gönderir: sorun ve bu sekmedeki konuşma; hayat dönemin ve mezhebin; bugünkü dersin başlığı; uygulamanın ders metinleri ve kaynakları ile kısa bir okuma listesi (yalnız başlıklar). Tefekkür notların, akşam muhasebe notların, eğer-öyleyse planların, namaz ve istiğfar işaretlerin asla gönderilmez. Uygulama konuşmayı kaydetmez; sayfayı kapatınca silinir. Claude hizmetinin kendi saklama kuralları uygulamanın kontrolü dışındadır.",en:"When you ask, this page sends the following to Claude, through your own Claude account: your question and the conversation in this tab; your life stage and school; today's lesson title; the app's lesson texts with their sources and a short further-reading list (titles only). Your reflection notes, evening review, if–then plans, prayer and forgiveness marks are never sent. The app does not save the chat; it is gone when you close the page. Claude's own service retention is outside the app's control."},
+ discOk:{tr:"Anladım",en:"I understand"},
+ pathSrc:{tr:"Kaynaklar (doğrulanmadı): Yûnus 10:62–63 (QK02) · Tahâvî Akîdesi (AK02) · Buhârî, Rikâk 38 (HD01) · Kuşeyrî Risâlesi, istikamet bâbı (TS02)",en:"Sources (unverified): Yunus 10:62–63 (QK02) · Creed of al-Tahawi (AK02) · Bukhari, Riqaq 38 (HD01) · al-Qushayri's Risala, chapter on steadfastness (TS02)"},
+ langDevice:{tr:"Dili cihaza göre ayarla",en:"Follow the device language"},
+};Object.assign(UI, {
+ introTitle:{tr:"Hoş geldin. Başlamadan önce",en:"Welcome. Before you start"},
+ introList:{tr:["Bu bir pilot sürüm. İçerik henüz bir âlim tarafından incelenmedi; bütün kaynaklar \"doğrulanmadı\" olarak gösterilir.","Bu uygulama bir hoca değildir; bir âlimin ya da gerektiğinde bir uzmanın yerine geçmez.","Kayıtların bu cihazda ve Claude içinde açıldığında özel uygulama depolamanda tutulur. Namaz ve istiğfar işaretleri yalnız bu cihazda, bugün için tutulur.","Verilerini Ayarlar'dan indirebilir, geri yükleyebilir ya da tamamen silebilirsin.","İstersen Ayarlar'dan Hatırlama kartını (deneme) ve Hafif modu açabilirsin."],en:["This is a pilot. The content has not yet been reviewed by a scholar; every source is shown as \"unverified\".","This app is not a teacher; it does not replace a scholar or, when needed, a professional.","Your entries are kept on this device and, inside Claude, in your private app storage. Prayer and forgiveness marks stay on this device for today only.","You can download, restore or delete all your data in Settings.","If you like, turn on the Recall card (an experiment) or Lighter mode in Settings."]},
+ introSetup:{tr:"Mezhep ve namaz işaretleri",en:"School and prayer marks"},
+ introDismiss:{tr:"Tamam",en:"Got it"},
+ aboutPilot:{tr:"Bu pilot hakkında",en:"About this pilot"},
+ practiceStep:{tr:"adım",en:"practice"},
+ continueKept:{tr:"Ya da sürdürdüğün bir adıma devam et:",en:"Or continue a practice you keep:"},
+ doingKept:{tr:"Bugün sürdürdüğün adım:",en:"Today you're continuing:"},
+ backToLesson:{tr:"Bugünün adımına dön",en:"Back to today's step"},
+ cueAdd:{tr:"Eğer-öyleyse planı ekle (isteğe bağlı)",en:"Add an if–then plan (optional)"},
+ cuePh:{tr:"…olunca / …dan sonra, şunu yapacağım: …",en:"After / when …, I will …"},
+ cueNote:{tr:"Bu isteğe bağlı planın bir son tarihi yok; ara verebilir ya da değiştirebilirsin. Plan Rehber'e gönderilmez.",en:"There is no deadline for this optional plan. You can pause or change it. Plans are never sent to the Guide."},
+ smaller:{tr:"Daha küçük bir adımla dene",en:"Make it smaller"},
+ insteadL:{tr:"İsteğe bağlı: onun yerine ne yapacaksın?",en:"Optional: what will you do instead?"},
+ caution:{tr:"Bu isteğe bağlı sayaçlar ya da kayıtlar istemediğin bir sıkıntıya ya da bırakması zor bir kontrol etmeye yol açarsa onları gizleyebilir (Hafif mod) ve \"Bir insana danışmak\" bölümüne bakabilirsin.",en:"If these optional app counters or records cause unwanted distress or checking that feels hard to stop, you can hide them (Lighter mode) and use 'Talk to a person'."},
+ studiedOnD:{tr:d=>`Okundu · ${d}`,en:d=>`Studied · ${d}`},
+ unstudy:{tr:"Okunmadı say",en:"Mark as not studied"},
+ nextTitle:{tr:"27 dersin hepsini okudun. Sırada ne olsun?",en:"You've studied all 27 lessons. What next?"},
+ nextText:{tr:"Bu bir derece ya da mezuniyet değil; yalnız bir öğrenme kaydı. Seçenekler:",en:"This is not a rank or a graduation, only a record of learning. Some choices:"},
+ nextKeep:{tr:"Sürdürdüğün bir adıma devam et (aşağıda)",en:"Continue a practice you keep (below)"},
+ nextRevisit:{tr:"Bugün tekrar bak: ",en:"Revisit today: "},
+ nextRead:{tr:"Kitaplık'tan bir okuma seç",en:"Choose some further reading in the Library"},
+ revisit:{tr:"Tekrar",en:"Revisit"},
+ recallTitle:{tr:"Hatırlama (deneme, isteğe bağlı)",en:"Recall (experiment, optional)"},
+ recallQ:{tr:"Kendi sözlerinle: bu dersin fikri neydi?",en:"In your own words: what was the idea of this lesson?"},
+ recallNote:{tr:"Bir şey yazman ya da kaydetmen gerekmiyor. Puan, sayaç ya da birikme yok.",en:"No need to write or save anything. No score, count or backlog."},
+ recallShow:{tr:"Göster",en:"Show"},recallSkip:{tr:"Bugün geç",en:"Skip today"},recallOff:{tr:"Hatırlamayı gizle",en:"Hide Recall"},
+ pauseTitle:{tr:"Kısa bir ara?",en:"A short pause?"},
+ pauseText:{tr:"Aynı konuda güvence aramak bazen kaygıyı artırabilir. Rehber kendi ibadetinin geçerliliğini onaylayamaz. Kendi durumun için bir âlime danış; bu sıkıntı verici hâle geldiyse bir doktor ya da psikologla konuş.",en:"Looking for reassurance on the same point can sometimes feed worry. The Guide cannot confirm whether your own worship is valid. Ask a scholar about your own case, and if this has become distressing, talk to a doctor or psychologist."},
+ dismiss:{tr:"Kapat",en:"Dismiss"},
+ tagNote:{tr:ids=>`Uygulamanın ders metinlerinde yok, kitaptan kontrol et: ${ids}`,en:ids=>`Not from the app's lesson texts — check the book: ${ids}`},
+ talk:{tr:"Bir insana danışmak",en:"Talk to a person"},
+ lighter:{tr:"Hafif mod: tefekkür ve muhasebe kayıtlarını katla, istiğfar işaretini ve sayılı adımları gizle",en:"Lighter mode: fold away reflection and review notes, hide the forgiveness mark and numbered steps"},
+ recallToggle:{tr:"Hatırlama kartı (deneme): daha önce okuduğun bir derse günde en fazla bir kez dön",en:"Recall card (experiment): at most once a day, look back at a lesson you studied earlier"},
+ recallNone:{tr:"Hatırlama yalnız pasaj desteği kontrol edilmiş derslerde çalışır. Henüz hiçbir ders uygun değil; bu yüzden kart görünmez.",en:"Recall only uses lessons whose passage support has been checked. No lesson is eligible yet, so no card appears."},
+ conflictLater:{tr:"Sonra karar ver",en:"Decide later"},
+ conflictOpen:{tr:"Bugün için iki farklı kayıt var. Seçmek için aç.",en:"There are two versions of today. Open to choose."},
+ conflictOpenBtn:{tr:"Seç",en:"Choose"},
+ saveFail:{tr:"Bu cihaza kaydedilemedi; yazdıkların ekranda duruyor. Bir yedek indirmeyi düşün.",en:"Could not save on this device; your text is still on screen. Consider downloading a backup."},
+ snapFail:{tr:"Geri yüklemeden önce yedek alınamadı; hiçbir şey değiştirilmedi.",en:"A safety copy could not be made before restoring, so nothing was changed."},
+ startHereToggle:{tr:"Kitaplık \"Buradan başla\" ile açılsın (QK02, FQ01, AK02; mevcut 1. aşama sıran)",en:"Open the Library on \"Start here\" (QK02, FQ01, AK02, from your Stage 1 order)"},
+ startHere:{tr:"Buradan başla",en:"Start here"},
+ showAll:{tr:"28 kitabın hepsini göster",en:"Show all 28 books"},
+ showLess:{tr:"Yalnız \"Buradan başla\"",en:"Only \"Start here\""},
+ writeNote:{tr:"Not yaz (isteğe bağlı)",en:"Write a note (optional)"},
+ openReview:{tr:"Akşam muhasebesini aç",en:"Open the evening review"},
+ dataT:{tr:"Verilerin",en:"Your data"},
+ dataNote:{tr:"Claude dışında önceki günler bu cihazda tutulur ve uygulama onları kendiliğinden silmez; tarayıcı yer bulamazsa bir uyarı görürsün. Nerede tutulur: bu cihaz; Claude içinde açıldığında özel uygulama depolaman (bu cihaz son 120 günü, özel depolama hepsini tutar); Rehber'e yalnız sorduğun soru ve konuşma (notların asla); indirdiğin dosyalar. Mezhebin ve namaz işaretlerin hassas dinî verilerdir. Uygulama kendi tuttuklarını siler; Claude hizmetinin kendi saklama kuralları uygulamanın kontrolü dışındadır. Daha önce indirdiğin dosyalar uygulama içinden silinemez.",en:"Outside Claude, earlier days stay on this device and the app does not prune them; if the browser runs out of space you will see a warning. Inside Claude, this device keeps the last 120 days and your private storage keeps them all. Where it is kept: this device; inside Claude, your private app storage; the Guide receives only your question and the chat (never your notes); files you download. Your school and prayer marks are sensitive religious data. The app deletes what it keeps; Claude's own service retention is outside the app's control. Files you downloaded earlier cannot be erased from inside the app."},
+ importBtn:{tr:"Dosyadan geri yükle",en:"Restore from a file"},
+ pasteBtn:{tr:"Ya da JSON yapıştır",en:"Or paste JSON"},
+ pasteGo:{tr:"Yapıştırılanı incele",en:"Check pasted data"},
+ impTitle:{tr:"Geri yüklemeden önce",en:"Before you restore"},
+ impSummary:{tr:(a,b,c)=>`Bu dosya ${c} tarihinde indirilmiş: ${a} okunmuş ders, ${b} günlük kayıt. Geri yüklemek bu cihazdaki ve özel depolamandaki verilerin yerine geçer. Namaz ve istiğfar işaretleri alınmaz.`,en:(a,b,c)=>`This file was exported on ${c}: ${a} studied lessons, ${b} day entries. Restoring replaces the data on this device and in your private storage. Prayer and forgiveness marks are not imported.`},
+ impGo:{tr:"Geri yükle",en:"Restore"},cancel:{tr:"Vazgeç",en:"Cancel"},
+ impBad:{tr:"Bu bir Kurb Yolu yedeği gibi görünmüyor. Hiçbir şey değiştirilmedi.",en:"This does not look like a Kurb Yolu backup. Nothing was changed."},
+ impDone:{tr:"Geri yüklendi",en:"Restored"},
+ impFail:{tr:"Geri yükleme tamamlanamadı; önceki verilerin geri getirildi.",en:"The restore could not finish; your previous data was put back."},
+ dlDone:{tr:"Dosya indirildi",en:"File downloaded"},
+ dlManual:{tr:"İndirme başlatılamadı. Aşağıdaki metni kopyalayıp bir dosyaya kaydedebilirsin.",en:"The download could not start. You can copy the text below and save it as a file."},
+ wipePartial:{tr:n=>`${n} kayıt silinemedi. Tekrar denemek için yeniden bas.`,en:n=>`${n} item(s) could not be deleted. Press again to retry.`},
+ wipeUnlisted:{tr:"Özel depolamadaki eski günlük kayıtlar listelenemedi; yalnız bilinen kayıtlar silindi. Daha sonra yeniden dene.",en:"Older day entries in your private storage could not be listed; only the known entries were deleted. Try again later."},
+ conflictTitle:{tr:"Bugün için iki farklı kayıt bulundu",en:"Two versions of today were found"},
+ conflictText:{tr:"Bu cihazdaki kayıt ile özel depolamandaki kayıt farklı. Hangisini tutmak istersin? Diğeri silinmeden önce burada görünür.",en:"The entry on this device and the one in your private storage differ. Which do you want to keep?"},
+ keepLocal:{tr:"Bu cihazdakini tut",en:"Keep this device's"},keepCloud:{tr:"Depodakini tut",en:"Keep the stored one"},
+ syncLocal:{tr:"Bu cihaza kaydedildi.",en:"Saved on this device."},
+ syncOk:{tr:"Özel depolamayla eşitlendi.",en:"Synced to your private storage."},
+ syncFail:{tr:"Eşitlenemedi; bu cihazda duruyor ve yeniden denenecek.",en:"Could not sync; kept on this device and will retry."},
+ staleReset:{tr:"Verilerin başka bir yerde silindiği için bu görünüm sıfırlandı.",en:"Your data was deleted elsewhere, so this view was reset."},
+ hijriNote:{tr:"Ümmü'l-Kurâ hesabı; yerel takvimler farklı olabilir",en:"Umm al-Qura calculation; local calendars may differ"},
+ soFar:{tr:n=>`şimdilik ${n} ders`,en:n=>`${n} so far`},
+ guideCheck:{tr:"Rehber bağlanıyor…",en:"Connecting the Guide…"},
+ guideWait:{tr:"İzin bekleniyor. Bir izin penceresi açıksa onu yanıtla.",en:"Waiting for permission. If a permission prompt is open, answer it."},
+ retry:{tr:"Yeniden dene",en:"Retry"},
+});
+
+/* ---------- state & storage ---------- */
+// Inside Mevazin the Prayers tab owns salah tracking, so the prayer marks stay hidden here.
+const EMBED = new URLSearchParams(location.search).has("embed");
+const PFX="kurb-yolu:", LSK=PFX+"v1", MK=PFX+"marks", BK=PFX+"backup";
+const pad=n=>String(n).padStart(2,"0");
+const dayKey = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const todayKey = () => dayKey(new Date());
+const addDays = (key,n) => { const [y,m,d]=key.split("-").map(Number); return dayKey(new Date(y,m-1,d+n)); };
+function daysBetween(a,b){ const [y1,m1,d1]=a.split("-").map(Number),[y2,m2,d2]=b.split("-").map(Number); return Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/864e5); }
+const DEF_PROFILE = {name:"",stage:"adult",madhhab:"open",focus:[],lang:"en",langManual:false,guideOk:false,practices:[],cues:{},prayerCheck:false,onboarded:false,introSeen:false,lighter:false,recall:false,startHere:false,lastVisit:null,updatedAt:0};
+const DEF_PROGRESS = () => ({studied:{},practice:{},books:{},lastOffered:{},recallN:{},updatedAt:0});
+function newDay(){return {date:todayKey(),lesson:null,reflect:"",commit:false,kept:null,result:null,shukr:"",niyet:"",instead:"",recall:null,recallDone:false,updatedAt:0};}
+let S = {profile:{...DEF_PROFILE}, progress:DEF_PROGRESS(), today:newDay(), days:{}};
+let M = {date:todayKey(),prayers:{},na:false,istighfar:false};
+let prevVisit=null, mode="local", DB=null, UID=null, tab="today", cloudSeen=false, wiping=false, syncState="local", libAll=false, pendingConflict=null;
+const LEGACY_MARKS=["prayers","na","istighfar"];
+const scrub = o => { if(o&&typeof o==="object"){ for(const k of LEGACY_MARKS) delete o[k]; } return o; };
+
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+function lsDelPrefix(){try{const ks=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(PFX))ks.push(k);}ks.forEach(k=>localStorage.removeItem(k));}catch(e){}}
+function trimDays(){ if(mode!=="db") return; const ks=Object.keys(S.days).sort(); while(ks.length>120){ delete S.days[ks.shift()]; } }
+let saveFailShown=false;
+function lsWrite(){ if(wiping) return; trimDays(); const ok=lsSet(LSK,{profile:S.profile,progress:S.progress,today:S.today,days:S.days,conflict:pendingConflict}); if(!ok && !saveFailShown){ saveFailShown=true; setTimeout(()=>toast(T(UI.saveFail)),0); } if(ok) saveFailShown=false; return ok; }
+function marksLoad(){ const m=lsGet(MK); if(m && m.date!==todayKey()){ try{localStorage.removeItem(MK);}catch(e){} } M = (m && m.date===todayKey()) ? {date:m.date,prayers:m.prayers||{},na:!!m.na,istighfar:!!m.istighfar} : {date:todayKey(),prayers:{},na:false,istighfar:false}; }
+function marksSave(){ if(!wiping) lsSet(MK,M); }
+
+function migratePractices(arr){
+  return (arr||[]).map(x=>{
+    if(x && typeof x==="object" && (x.id||x.text)) return x.id&&LBY[x.id]?{id:x.id}:{text:String(x.text||"")};
+    const s=String(x||""); const hit=L.find(l=>l.p.tr===s||l.p.en===s||(l.pl&&(l.pl.tr===s||l.pl.en===s)));
+    return hit?{id:hit.id}:{text:s};
+  }).filter((x,i,a)=>(x.id||x.text) && a.findIndex(y=>(y.id||"")===(x.id||"")&&(y.text||"")===(x.text||""))===i);
+}
+function normProfile(p){ const o={...DEF_PROFILE,...(p||{})}; o.practices=migratePractices(o.practices); o.cues=o.cues||{}; return o; }
+function normProgress(g){ const o={...DEF_PROGRESS(),...(g||{})}; ["studied","practice","books","lastOffered","recallN"].forEach(k=>{if(!o[k]||typeof o[k]!=="object")o[k]={};}); return o; }
+function normDay(d){ const o={...newDay(),...scrub({...(d||{})})}; return o; }
+function applyLoaded(o){
+  if(!o) return;
+  if(o.profile){ S.profile=normProfile(o.profile); if(o.profile.prayerCheck===undefined && o.profile.onboarded) S.profile.prayerCheck=true; }
+  if(o.progress) S.progress=normProgress(o.progress);
+  if(o.days && typeof o.days==="object"){ S.days={}; for(const [k,v] of Object.entries(o.days)) S.days[k]=normDay(v); }
+  if(o.conflict && o.conflict.cloud && o.conflict.local && o.conflict.local.date===todayKey()) pendingConflict={cloud:normDay(o.conflict.cloud),local:normDay(o.conflict.local)};
+  if(o.today){
+    const t=normDay(o.today);
+    if(t.date===todayKey()) S.today=t; else { if(hasContent(t)) S.days[t.date]=t; S.today=newDay(); }
+  }
+}
+const hasContent = d => !!(d && ((d.reflect||"").trim()||(d.shukr||"").trim()||(d.niyet||"").trim()||(d.instead||"").trim()||d.commit));
+const coll = () => DB.collection("data/users/"+UID);
+let saveTimer=null, dirty=new Set();
+function stamp(w){ const t=Date.now(); if(w==="profile")S.profile.updatedAt=t; else if(w==="progress")S.progress.updatedAt=t; else if(w==="today")S.today.updatedAt=t; }
+function save(which,quiet){
+  if(wiping) return;
+  // quiet saves (app-chosen lesson, recall bookkeeping) are not user edits, so they carry no new timestamp
+  (Array.isArray(which)?which:[which]).forEach(w=>{dirty.add(w); if(!quiet) stamp(w);});
+  lsWrite(); notifyAct();
+  if(mode!=="db"){ syncState="local"; updateSync(); return; }
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(flush,500);
+}
+async function flush(){
+  clearTimeout(saveTimer); saveTimer=null;
+  if(mode!=="db"||wiping||!dirty.size) return;
+  const ws=[...dirty]; dirty.clear(); let ok=true;
+  for(const w of ws){
+    try{
+      if(w==="profile") await coll().doc("profile").set(S.profile);
+      else if(w==="progress") await coll().doc("progress").set(S.progress);
+      else if(w==="today"){ if(pendingConflict){ continue; } await coll().doc("d-"+S.today.date).set(S.today); }
+    }catch(e){ ok=false; dirty.add(w); }
+  }
+  if(wiping) return;
+  syncState = ok?"ok":"fail"; updateSync();
+  if(!ok){ clearTimeout(saveTimer); saveTimer=setTimeout(flush,15000); }
+}
+function updateSync(){ const el=$("#syncLine"); if(el) el.textContent=syncText(); }
+const syncText = () => mode==="db" ? (syncState==="fail"?T(UI.syncFail):syncState==="ok"?T(UI.syncOk):T(UI.syncLocal)) : T(UI.syncLocal);
+
+async function listAll(){ const snap=await coll().get(); return snap.docs.filter(d=>d.exists); }
+async function connect(){
+  const cl = window.claude;
+  if(!cl || !cl.use) return;
+  try{
+    const [db,user] = await Promise.all([cl.use("db"),cl.use("user")]);
+    const id = user ? await user.id() : null;
+    if(!db || !id) return;
+    DB=db; UID=id;
+    let docs=null;
+    try{ docs=await listAll(); }catch(e){ docs=null; }
+    const byId={};
+    if(docs) docs.forEach(d=>byId[d.id]=d.data());
+    else { const [p,g,t]=await Promise.all([coll().doc("profile").get(),coll().doc("progress").get(),coll().doc("d-"+todayKey()).get()]); if(p.exists)byId.profile=p.data(); if(g.exists)byId.progress=g.data(); if(t.exists)byId["d-"+todayKey()]=t.data(); }
+    mode="db";
+    const cp=byId.profile, cg=byId.progress, ct=byId["d-"+todayKey()];
+    const push=[];
+    if(cp||cg){
+      cloudSeen=true;
+      // profile and progress: newer copy wins; legacy cloud without a stamp wins over a legacy local copy
+      if(cp && (cp.updatedAt||0) >= (S.profile.updatedAt||0)){ const keepLang=S.profile.langManual?null:deviceLang(); S.profile=normProfile(cp); if(cp.prayerCheck===undefined) S.profile.prayerCheck=true; if(keepLang && !S.profile.langManual) S.profile.lang=keepLang; } else push.push("profile");
+      if(cg && (cg.updatedAt||0) >= (S.progress.updatedAt||0)) S.progress=normProgress(cg); else push.push("progress");
+      if(ct){
+        const c=normDay(ct), l=S.today;
+        // an untouched local day (never edited) simply takes the stored copy; otherwise differing versions are both kept until the user chooses
+        if(!(l.updatedAt>0)) S.today=c;
+        else if(sameDay(c,l)){ if((c.updatedAt||0)>(l.updatedAt||0)) S.today=c; }
+        else if(!(c.updatedAt>0) && !hasContent(c)) push.push("today");
+        else { pendingConflict={cloud:c,local:{...l}}; }
+      } else if(hasContent(S.today)) push.push("today");
+      prevVisit = S.profile.lastVisit;
+    } else if(S.profile.onboarded || Object.keys(S.progress.studied).length || hasContent(S.today)){
+      push.push("profile","progress","today");
+      for(const [k,v] of Object.entries(S.days)) { try{ await coll().doc("d-"+k).set(v); }catch(e){} }
+    }
+    // legacy scrub: remove prayer/forgiveness marks from stored day docs
+    for(const [k,v] of Object.entries(byId)){
+      if(k.startsWith("d-") && v && LEGACY_MARKS.some(f=>f in v)){ try{ await coll().doc(k).set(scrub({...v})); }catch(e){} }
+    }
+    if(push.length){ save(push); } else { syncState="ok"; }
+    lsWrite(); stampVisit(); renderAll();
+    if(pendingConflict) openConflict();
+  }catch(e){ mode="local"; }
+}
+const sameDay=(a,b)=>["reflect","shukr","niyet","instead","commit","result","lesson"].every(k=>(a[k]||"")===(b[k]||""));
+function stampVisit(){ if(S.profile.lastVisit!==todayKey()){S.profile.lastVisit=todayKey();save("profile");} }
+
+function checkDay(){
+  const k=todayKey();
+  if(S.today.date===k) return false;
+  if(mode==="db") flush();
+  if(hasContent(S.today)) S.days[S.today.date]=S.today;
+  S.today=newDay(); marksLoad();
+  prevVisit=S.profile.lastVisit; stampVisit(); lsWrite();
+  if(!document.querySelector("#sheet")) renderAll();
+  return true;
+}
+async function checkStale(){
+  if(mode!=="db"||!cloudSeen||wiping) return;
+  try{ const p=await coll().doc("profile").get(); if(!p.exists){ resetLocal(); toast(T(UI.staleReset)); } }catch(e){}
+}
+function resetLocal(){
+  clearTimeout(saveTimer); saveTimer=null; dirty.clear(); lsDelPrefix();
+  const keep=S.profile.lang, man=S.profile.langManual;
+  S={profile:{...DEF_PROFILE,lang:keep,langManual:man},progress:DEF_PROGRESS(),today:newDay(),days:{}}; marksLoad(); cloudSeen=false; prevVisit=null;
+  closeSheet(); tab="today"; renderAll();
+}
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const lang = () => S.profile.lang==="tr"?"tr":"en";
+const T = o => (o && typeof o==="object" && ("tr" in o||"en" in o)) ? (o[lang()] ?? o.en) : o;
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(msg){const d=document.createElement("div");d.className="toast";d.setAttribute("aria-hidden","true");d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2200);const lv=$("#live");if(lv){lv.textContent="";setTimeout(()=>lv.textContent=msg,30);}}
+const star = (filled) => `<svg viewBox="0 0 36 36" aria-hidden="true"><rect x="8" y="8" width="20" height="20" fill="${filled?"var(--accent)":"var(--surface)"}" stroke="var(--accent)" stroke-width="1.6"/><rect x="8" y="8" width="20" height="20" fill="${filled?"var(--accent)":"var(--surface)"}" stroke="var(--accent)" stroke-width="1.6" transform="rotate(45 18 18)"/></svg>`;
+const fmtDate = k => { const [y,m,d]=k.split("-").map(Number); return new Intl.DateTimeFormat(lang()==="tr"?"tr-TR":"en-GB",{day:"numeric",month:"short"}).format(new Date(y,m-1,d)); };
+const actText = l => (S.profile.lighter && l.pl) ? T(l.pl) : T(l.p);
+const practiceText = x => x.id ? (LBY[x.id]?T(LBY[x.id].p):"") : x.text;
+// Inside Mevazin, today's act also shows in the Todos tab once you commit to it.
+function notifyAct(){
+  if(!EMBED || window.parent===window) return;
+  const d=S.today, kept=d.kept?S.profile.practices.find(x=>practiceKey(x)===d.kept):null, l=LBY[d.lesson];
+  const text=kept?practiceText(kept):(l?actText(l):"");
+  try{ window.parent.postMessage({type:"mevazin-yol-act",date:d.date,commit:!!d.commit&&!!text,done:d.result==="did",text},location.origin); }catch(e){}
+}
+const practiceKey = x => x.id ? "l:"+x.id : "t:"+x.text;
+const isKept = id => S.profile.practices.some(x=>x.id===id);
+
+function suggestLesson(){
+  const st=S.progress.studied, f=S.profile.focus||[];
+  const pool = ORDER.filter(id=>!st[id]);
+  if(!pool.length) return null;
+  const byLv = arr => [...arr].sort((a,b)=>LBY[a].lv-LBY[b].lv);
+  const f1 = pool.find(id=>f.includes(LBY[id].d) && LBY[id].lv===1);
+  if(f1) return f1;
+  const wf = pool.find(id=>(LBY[id].d==="ibadet"||LBY[id].d==="iman") && LBY[id].lv===1);
+  if(wf) return wf;
+  const fx = byLv(pool.filter(id=>f.includes(LBY[id].d)))[0];
+  return fx || byLv(pool)[0];
+}
+function revisitLesson(){ const st=S.progress.studied; return Object.keys(st).filter(id=>LBY[id]).sort((a,b)=>st[a]<st[b]?-1:st[a]>st[b]?1:ORDER.indexOf(a)-ORDER.indexOf(b))[0]||ORDER[0]; }
+function currentLesson(){
+  if(!S.today.lesson || !LBY[S.today.lesson]){ S.today.lesson=suggestLesson()||revisitLesson(); save("today",true); }
+  return LBY[S.today.lesson];
+}
+const allStudied = () => ORDER.every(id=>S.progress.studied[id]);
+function weekStats(){
+  const s=addDays(todayKey(),-6);
+  const a=Object.values(S.progress.studied).filter(d=>d>=s).length;
+  const b=Object.entries(S.progress.practice).filter(([d,v])=>d>=s && v && (v.result==="did"||v.result==="part")).length;
+  return [a,b];
+}
+function provenance(row){ const [ref,id,note]=row; return {ref,id,note:note||null,edition:null,passage:null,type:null,scope:null,status:"unverified",support:(row[3]&&row[3].support)||"unchecked"}; }
+function evidenceHTML(l){
+  return `<div class="evidence"><div class="row" style="justify-content:space-between"><span class="eyebrow">${T(UI.evHead)}</span><span class="tag unv">${lang()==="tr"?"doğrulanmadı":"unverified"}</span></div>${l.ev.map(provenance).map((e,i)=>`<div><b>${esc(e.ref)}</b>${e.id?` · <button type="button" class="libref" data-ref="${l.id}:${i}" aria-expanded="false" aria-label="${esc(e.id+(CAT[e.id]?": "+CAT[e.id][1]:""))}">${e.id}</button>`:""}${e.note?` <span class="small">(${esc(T(e.note))})</span>`:""}<div class="refinfo" id="ri-${l.id}-${i}" hidden>${e.id&&CAT[e.id]?esc(CAT[e.id][1]+" — "+CAT[e.id][2]):""}</div></div>`).join("")}<div class="small muted">${T(UI.evNote)}</div></div>`;
+}
+const helpCard = () => `<div class="card flat" id="helpCard"><h3>${T(UI.helpTitle)}</h3><p class="small" style="margin-top:4px">${T(UI.helpText)}</p></div>`;
+
+/* recall */
+const GAPS=[2,7,30,90];
+// a lesson is eligible for Recall only when every claim/source link has passage support recorded as checked (none yet in this pilot)
+const supportChecked = l => l.ev.length>0 && l.ev.every(r=>provenance(r).support==="checked");
+const anyEligible = () => L.some(supportChecked);
+function recallPick(){
+  if(!S.profile.recall) return null;
+  const t=todayKey(), d=S.today;
+  if(d.recallDone) return null;
+  if(d.recall && LBY[d.recall]) return d.recall;
+  const st=S.progress.studied; let best=null, over=-1;
+  for(const id of Object.keys(st)){
+    if(!LBY[id] || id===d.lesson || !supportChecked(LBY[id])) continue;
+    const n=S.progress.recallN[id]||0, base=S.progress.lastOffered[id]||st[id];
+    const gap=GAPS[Math.min(n,GAPS.length-1)], since=daysBetween(base,t);
+    if(daysBetween(st[id],t)>=2 && since>=gap && since-gap>over){ over=since-gap; best=id; }
+  }
+  if(best){ d.recall=best; S.progress.lastOffered[best]=t; S.progress.recallN[best]=(S.progress.recallN[best]||0)+1; save(["today","progress"],true); }
+  return best;
+}
+let recallShown=false;
+
+/* ---------- views ---------- */
+function renderToday(){
+  checkDay();
+  const p=S.profile, l=currentLesson(), d=S.today, sDate=S.progress.studied[l.id], studied=!!sDate, light=p.lighter;
+  const now=new Date();
+  const g=new Intl.DateTimeFormat(lang()==="tr"?"tr-TR":"en-GB",{weekday:"long",day:"numeric",month:"long"}).format(now);
+  let h=""; try{h=new Intl.DateTimeFormat((lang()==="tr"?"tr-TR":"en-GB")+"-u-ca-islamic-umalqura",{day:"numeric",month:"long",year:"numeric"}).format(now);}catch(e){}
+  const gap = prevVisit ? daysBetween(prevVisit,todayKey()) : 0;
+  const step=(n,done,title,hint,inner)=>`<div class="step${done?" done":""}"><div class="mark">${star(done)}<span>${n}</span></div><div class="body stack"><h3>${title}<small>${hint}</small></h3>${inner}</div></div>`;
+  const resBtns = ["did","part","not"].map(r=>`<button type="button" class="chip" data-res="${r}" aria-pressed="${d.result===r}">${T(UI["r_"+r])}</button>`).join("");
+  const kept = d.kept ? p.practices.find(x=>practiceKey(x)===d.kept) : null;
+  const cueKey = kept ? d.kept : "l:"+l.id;
+  const cueVal = p.cues[cueKey]||"";
+  const cueHTML = `<details class="cue"${cueVal?" open":""}><summary class="linkbtn">${T(UI.cueAdd)}</summary><div class="stack" style="margin-top:8px"><label class="visually-hidden" for="cueIn">${T(UI.cueAdd)}</label><input type="text" id="cueIn" data-cue="${esc(cueKey)}" placeholder="${esc(T(UI.cuePh))}" value="${esc(cueVal)}"><p class="small muted">${T(UI.cueNote)}</p></div></details>`;
+  const resultHTML = d.commit?`<div class="stack"><span class="small muted">${T(UI.how)}</span><div class="seg" role="group" aria-label="${esc(T(UI.how))}">${resBtns}</div>${d.result==="not"?`<p class="small muted">${T(UI.r_notMsg)} ${kept?"":`<button type="button" class="linkbtn" id="smallerBtn">${T(UI.smaller)}</button>`}</p>`:""}</div>`:"";
+  const keptChooser = (!l.secret && p.practices.length && !kept) ? `<div class="stack"><span class="small muted">${T(UI.continueKept)}</span><div class="seg">${p.practices.map(x=>`<button type="button" class="chip" data-usekept="${esc(practiceKey(x))}">${esc(practiceText(x))}</button>`).join("")}</div></div>` : "";
+  const insteadHTML = (!kept && d.commit && (l.id==="dil"||l.id==="malayani")) ? `<div class="field"><label for="insteadIn" class="small">${T(UI.insteadL)}</label><input type="text" id="insteadIn" value="${esc(d.instead)}"><div class="private">${lockIcon()}${T(UI.privateNote)}</div></div>` : "";
+  const actInner = l.secret && !kept
+    ? `<p>${esc(T(l.p))}</p><p class="muted small">${T(UI.secretMsg)}</p>${keptChooser}`
+    : kept
+    ? `<p class="small muted">${T(UI.doingKept)}</p><p>${esc(practiceText(kept))}</p>
+       <div class="row"><button type="button" class="chip" id="commitBtn" aria-pressed="${!!d.commit}">${T(UI.commit)}</button><button type="button" class="linkbtn" id="unuseKept">${T(UI.backToLesson)}</button></div>
+       ${resultHTML}${cueHTML}`
+    : `<p>${esc(actText(l))}</p>${l.sug&&!(light&&l.pl)?`<p class="small muted">${T(UI.sugNote)} ${T(UI.caution)}</p>`:""}
+       <div class="row"><button type="button" class="chip" id="commitBtn" aria-pressed="${!!d.commit}">${T(UI.commit)}</button>${isKept(l.id)?`<span class="small muted">✓ ${T(UI.kept)}</span>`:`<button type="button" class="btn quiet" id="keepBtn">${T(UI.keepBtn)}</button>`}</div>
+       ${resultHTML}${insteadHTML}${d.commit?cueHTML:""}${keptChooser}`;
+  const showIntro = !p.introSeen && !p.onboarded;
+  const rid = recallPick();
+  const rl = rid ? LBY[rid] : null;
+  const reflectInner = light && !d.reflect && !openNotes.reflect ? `<button type="button" class="linkbtn" data-opennote="reflect">${T(UI.writeNote)}</button>` : `<p><i>${esc(T(l.r))}</i></p>${`<label class="visually-hidden" for="reflectTa">${esc(T(l.r))}</label><textarea id="reflectTa" placeholder="${esc(T(UI.reflectPh))}">${esc(d.reflect)}</textarea><div class="private">${lockIcon()}${T(UI.privateNote)}</div>`}`;
+  const reviewInner = light && !d.shukr && !d.niyet && !openNotes.review ? `<button type="button" class="linkbtn" data-opennote="review">${T(UI.openReview)}</button>` : `
+       <div class="field"><label for="shukrIn">${T(UI.m1)}</label><input type="text" id="shukrIn" value="${esc(d.shukr)}"></div>
+       ${light?"":`<div class="field"><span class="lab" id="m2lab">${T(UI.m2)}</span><div><button type="button" class="chip" id="istBtn" aria-pressed="${!!M.istighfar}" aria-describedby="m2lab">${T(UI.m2btn)}</button></div><p class="small muted">${T(UI.farzPrivate)}</p></div>`}
+       <div class="field"><label for="niyetIn">${T(UI.m3)}</label><input type="text" id="niyetIn" value="${esc(d.niyet)}"></div>
+       <div class="private">${lockIcon()}${T(UI.privateNote)}</div>`;
+  $("#v-today").innerHTML = `
+   <div class="dates"><div class="g">${esc(g)}</div>${h?`<div class="h">${esc(h)} <span class="small muted">· ${T(UI.hijriNote)}</span></div>`:""}</div>
+   <div class="stack">
+    ${showIntro?`<div class="card stack"><h3>${T(UI.introTitle)}</h3><ul class="principles small">${UI.introList[lang()].map(x=>`<li>${esc(x)}</li>`).join("")}</ul><div class="row"><button class="btn" type="button" data-open="settings">${T(UI.introSetup)}</button><button class="btn quiet" type="button" id="introOk">${T(UI.introDismiss)}</button></div></div>`
+      :(!p.onboarded?`<div class="banner"><div><b>${T(UI.setupTitle)}</b><div class="small">${T(UI.setupText)}</div></div><button class="btn" type="button" data-open="settings">${T(UI.setupBtn)}</button></div>`:"")}
+    ${pendingConflict?`<div class="notice row" style="justify-content:space-between"><span class="small">${T(UI.conflictOpen)}</span><button class="btn quiet" type="button" id="cfOpen">${T(UI.conflictOpenBtn)}</button></div>`:""}
+    ${gap>=3?`<div class="card flat"><h3>${T(UI.returnTitle)}${p.name?", "+esc(p.name):""}</h3><p class="small" style="margin-top:4px">${T(UI.returnText)}</p></div>`:""}
+    ${(p.prayerCheck&&!EMBED)?`<div class="card flat stack"><div class="row" style="justify-content:space-between"><h3>${T(UI.farzTitle)}</h3><span class="tag">${T(UI.madh[p.madhhab]||UI.madh.open)}</span></div>
+      ${M.na?`<p class="small">${T(UI.naMsg)}</p>`:`<div class="prayers" role="group" aria-label="${esc(T(UI.farzTitle))}">${PRAYERS.map(([k,n])=>`<button type="button" data-pr="${k}" aria-pressed="${!!M.prayers[k]}"><span class="dot" aria-hidden="true"></span>${T(n)}</button>`).join("")}</div>`}
+      <div class="row"><button type="button" class="chip" id="naBtn" aria-pressed="${!!M.na}">${T(UI.naBtn)}</button></div>
+      <p class="small muted">${T(UI.farzPrivate)} ${T(UI.farzSchool[p.madhhab==="hanafi"?"hanafi":p.madhhab==="open"?"open":"other"])}</p></div>`:""}
+    ${p.practices.length?`<div class="card flat stack"><h3>${T(UI.myPractices)}</h3><ul class="plist">${p.practices.map((x,i)=>`<li><span>${esc(practiceText(x))}${p.cues[practiceKey(x)]?`<br><span class="small muted">${esc(p.cues[practiceKey(x)])}</span>`:""}</span><button type="button" class="iconbtn" data-unkeep="${i}">${T(UI.remove)}</button></li>`).join("")}</ul><p class="small muted">${T(UI.myPracticesNote)}</p></div>`:""}
+    ${allStudied()?`<div class="card flat stack"><h3>${T(UI.nextTitle)}</h3><p class="small">${T(UI.nextText)}</p><ul class="principles small"><li>${T(UI.nextKeep)}</li><li>${T(UI.nextRevisit)}${esc(T(l.t))}</li><li><button type="button" class="linkbtn" data-tab="lib">${T(UI.nextRead)}</button></li></ul></div>`:""}
+    ${rl?`<div class="card flat recall stack"><h3>${T(UI.recallTitle)}</h3><div class="lesson-title">${esc(T(rl.t))}</div><p>${T(UI.recallQ)}</p><p class="small muted">${T(UI.recallNote)}</p>
+      ${recallShown?`<p class="lesson-text">${esc(T(rl.b))}</p><p><b>${T(UI.s3)}:</b> ${esc(actText(rl))}</p>${evidenceHTML(rl)}`:""}
+      <div class="row">${recallShown?"":`<button type="button" class="btn" id="recShow">${T(UI.recallShow)}</button>`}<button type="button" class="btn quiet" id="recSkip">${T(UI.recallSkip)}</button><button type="button" class="linkbtn" id="recOff">${T(UI.recallOff)}</button></div></div>`:""}
+    <div class="card"><div class="loop">
+     ${step(1,studied,T(UI.s1),T(UI.s1h),`
+       <div class="row"><span class="tag">${T(DOMAINS[l.d])}</span><span class="tag ${l.lv===1?"l1":l.lv===3?"l3":""}">${T(LEVELS[l.lv])}</span>${allStudied()?`<span class="tag">${T(UI.revisit)}</span>`:""}</div>
+       <div class="lesson-title">${esc(T(l.t))}</div>
+       <p class="lesson-text">${esc(T(l.b))}</p>
+       ${evidenceHTML(l)}
+       <div class="row">${studied?`<span class="btn ghost" role="status">✓ ${T(UI.studiedOnD)(fmtDate(sDate))}</span><button class="linkbtn" type="button" id="unstudyBtn">${T(UI.unstudy)}</button>`:`<button class="btn" type="button" id="studyBtn">${T(UI.studied)}</button>`}<button class="btn quiet" type="button" id="otherBtn">${T(UI.other)}</button></div>`)}
+     ${step(2,!!d.reflect.trim(),T(UI.s2),T(UI.s2h),reflectInner)}
+     ${step(3,(l.secret&&!kept)?false:(d.result==="did"||d.result==="part"),T(UI.s3),T(UI.s3h),actInner)}
+     ${step(4,!!(d.shukr.trim()||M.istighfar||d.niyet.trim()),T(UI.s4),T(UI.s4h),reviewInner)}
+    </div></div>
+    <div class="row"><button type="button" class="btn quiet" id="weekBtn">${T(UI.weekLink)}</button></div>
+    ${helpCard()}
+    <p class="small muted">${mode==="db"?T(UI.storeDb):T(UI.storeLocal)} <span class="syncline" id="syncLine">${esc(syncText())}</span></p>
+   </div>`;
+}
+let openNotes={reflect:false,review:false};
+const lockIcon=()=>`<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5" width="8" height="6" rx="1.2" fill="currentColor"/><path d="M4 5V3.6a2 2 0 0 1 4 0V5" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>`;
+
+function renderPath(){
+  const st=S.progress.studied;
+  $("#v-path").innerHTML = `<div class="stack">
+    <div class="card hero-ayah">
+      <div class="eyebrow">${T(UI.pathEyebrow)}</div>
+      <div class="ar" lang="ar" dir="rtl">أَلَا إِنَّ أَوْلِيَاءَ اللَّهِ لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ</div>
+      <p class="mean">${T(UI.pathMean)}</p>
+    </div>
+    <p class="lesson-text">${T(UI.pathIntro)}</p>
+    <p class="small muted">${T(UI.pathSrc)}</p>
+    <div class="moves">${UI.moves.map((m,i)=>`<div class="move"><span class="eyebrow">${["I","II","III"][i]}</span><b>${T(m.t)}</b><span>${T(m.s)}</span></div>`).join("")}</div>
+    <p class="small muted">${T(UI.movesSrc)}</p>
+    <h2 style="margin-top:8px">${T(UI.domainsTitle)}</h2>
+    <p class="small muted">${T(UI.domainsNote)}</p>
+    ${Object.keys(DOMAINS).map(dk=>{
+      const ls=ORDER.map(id=>LBY[id]).filter(x=>x.d===dk).sort((a,b)=>a.lv-b.lv);
+      const n=ls.filter(x=>st[x.id]).length;
+      return `<details class="domain"${S.profile.focus.includes(dk)?" open":""}><summary><h3>${T(DOMAINS[dk])}</h3><span class="row" style="flex-wrap:nowrap;gap:8px"><span class="small muted">${T(UI.soFar)(ls.length)}</span><span class="meter" role="img" aria-label="${n}/${ls.length}">${ls.map(x=>`<i class="${st[x.id]?"on":""}"></i>`).join("")}</span></span></summary>
+       <div class="lessons">${ls.map(x=>`<button type="button" class="lrow" data-lesson="${x.id}" aria-label="${esc(T(x.t)+" · "+T(LEVELS[x.lv])+(st[x.id]?" · "+T(UI.studiedOn):""))}"><span class="t"><span class="tag ${x.lv===1?"l1":x.lv===3?"l3":""}">${T(LEVELS[x.lv])}</span> ${esc(T(x.t))}</span><span class="check${st[x.id]?" on":""}" aria-hidden="true"></span></button>`).join("")}</div></details>`;
+    }).join("")}
+    <div class="card flat"><p class="small">${T(UI.teacher)}</p></div>
+    ${helpCard()}
+  </div>`;
+}
+
+function renderLib(){
+  const my=S.progress.books, short=S.profile.startHere && !libAll;
+  const SH=["QK02","FQ01","AK02"];
+  const bookHTML=([_,id,ti,by,stt0])=>{const stt=(CAT[id]&&CAT[id][3])||stt0;const m=my[id]||"none";const sx=STATUS[stt]||{tr:stt,en:stt};return `<div class="book"><div style="min-width:0"><div class="row"><span class="libref">${id}</span><span class="status${sx.free?" free":""}">${T(sx)}</span></div><div class="ti">${esc(ti)}</div><div class="small muted">${esc(by)}</div></div><button type="button" class="mine" data-book="${id}" data-s="${m}" aria-label="${esc(ti+": "+T(UI.my[m]))}">${T(UI.my[m])}</button></div>`;};
+  $("#v-lib").innerHTML = `<div class="stack">
+    <p class="small muted lesson-text">${T(UI.libIntro)}</p>
+    ${short?`<div class="card stage"><h3>${T(UI.startHere)}</h3><p class="small muted">${T(STAGES[1].d)}</p>${BOOKS.filter(b=>SH.includes(b[1])).map(bookHTML).join("")}</div><div class="row"><button type="button" class="btn quiet" id="libAllBtn">${T(UI.showAll)}</button></div>`
+    :`${S.profile.startHere?`<div class="row"><button type="button" class="btn quiet" id="libShortBtn">${T(UI.showLess)}</button></div>`:""}${[1,2,3].map(s=>`<div class="card stage"><h3>${T(STAGES[s])}</h3><p class="small muted">${T(STAGES[s].d)}</p>${BOOKS.filter(b=>b[0]===s).map(bookHTML).join("")}</div>`).join("")}`}
+    ${helpCard()}
+  </div>`;
+}
+
+/* guide */
+let chat=[], ctl=null, SAMPLE=undefined, pauseCount=0, pauseShown=false, pauseDismissed=false;
+const runtimePresent = () => !!(window.claude && window.claude.use);
+const MARK=/\[\[PAUSE\]\]\s*/g;
+const stripMark = t => String(t||"").replace(MARK,"").replace(/\[\[[A-Z]{0,5}\]?$/,"");
+const LESSON_IDS = new Set(L.flatMap(x=>x.ev.map(e=>e[1]).filter(Boolean)));
+const tagIds = t => [...new Set((String(t).match(/\b(QK|HD|ZK|AK|FQ|US|SR|TH|BY|TS|DS|RF)\d{2}\b/g)||[]).filter(id=>!LESSON_IDS.has(id)))];
+function suggestions(){
+  const sch = S.profile.madhhab && S.profile.madhhab!=="open" ? ` (${T(UI.madh[S.profile.madhhab])})` : "";
+  return UI.suggest.map((s,i)=>i===1?T(s).replace(/[?？]$/,"")+sch+"?":T(s));
+}
+function renderGuide(){
+  const off = !runtimePresent() || SAMPLE===null;
+  $("#v-guide").innerHTML = `<div class="stack">
+    <p class="small muted lesson-text">${T(UI.guideIntro)}</p>
+    ${!S.profile.guideOk && !off?`<div class="card flat stack"><h3>${T(UI.discTitle)}</h3><p class="small">${T(UI.discText)}</p><div class="row"><button class="btn" type="button" id="discOk">${T(UI.discOk)}</button></div></div>`:""}
+    ${off?`<div class="card flat small" role="status">${T(UI.guideOff)}</div>`:""}
+    ${chat.length===0 && !off && S.profile.guideOk && SAMPLE?`<div class="row">${suggestions().map((s,i)=>`<button type="button" class="chip" data-sug="${i}">${esc(s)}</button>`).join("")}</div>`:""}
+    ${S.profile.guideOk && !off && SAMPLE===undefined?`<p class="small muted" role="status">${T(sampleSlow?UI.guideWait:UI.guideCheck)}</p>${sampleSlow?`<button type="button" class="btn quiet" id="sampleRetry">${T(UI.retry)}</button>`:""}`:""}
+    <div class="chat" id="chatBox" aria-live="polite">${chat.map(m=>`<div class="msg ${m.role==="user"?"u":"a"}">${esc(m.content)}</div>${m.tags&&m.tags.length?`<div class="tagnote">${esc(T(UI.tagNote)(m.tags.join(", ")))}</div>`:""}`).join("")}</div>
+    ${pauseShown&&!pauseDismissed?`<div class="notice stack" role="status"><b>${T(UI.pauseTitle)}</b><p class="small">${T(UI.pauseText)}</p><div class="row"><button type="button" class="btn quiet" id="pauseOk">${T(UI.dismiss)}</button></div></div>`:""}
+    ${off||!S.profile.guideOk||!SAMPLE?"":`<form class="composer" id="askForm"><label class="visually-hidden" for="askIn">${T(UI.ask)}</label><textarea id="askIn" placeholder="${esc(T(UI.askPh))}">${esc(draftQ)}</textarea><button class="btn" id="askBtn" type="submit">${T(UI.ask)}</button></form>`}
+    ${helpCard()}
+  </div>`;
+}
+let draftQ="";
+let samplePending=null, sampleSlow=false;
+async function requestSample(){
+  if(SAMPLE!==undefined || !runtimePresent()) return;
+  if(!samplePending){
+    sampleSlow=false;
+    samplePending = Promise.resolve().then(()=>window.claude.use("sample")).then(s=>{SAMPLE=s;},()=>{SAMPLE=null;}).finally(()=>{samplePending=null; sampleSlow=false; if(tab==="guide") renderGuide();});
+  }
+  // a slow answer may be an open permission prompt: say so instead of switching the Guide off
+  await Promise.race([samplePending, new Promise(r=>setTimeout(r,10000))]);
+  if(SAMPLE===undefined){ sampleSlow=true; if(tab==="guide") renderGuide(); }
+}
+function rules(){
+  const p=S.profile, l=currentLesson();
+  const lessons=L.map(x=>`[${x.id}] ${x.t.en} — ${x.b.en} SOURCES: ${x.ev.map(([t,id])=>t+(id?" ("+id+")":"")).join("; ")} SUPPORT: ${supportChecked(x)?"checked":"unchecked"}`).join("\n");
+  const further=BOOKS.map(b=>`${b[1]} | ${b[2]} | ${b[3]}`).join("\n");
+  const sch=p.madhhab==="open"?"not decided":p.madhhab;
+  return `You are the study companion inside "Kurb Yolu", a private notebook for the user's own Islamic learning and practice. Rules:
+- ISLAMIC QUESTIONS: SOURCE-ONLY AND SUPPORT-GATED. On anything Islamic (Qur'an, hadith, creed, fiqh, sira, tasawwuf, religious ethics, school positions) you may state a point as content ONLY if it appears in the APP LESSON TEXTS below AND its SUPPORT is "checked". For lessons whose SUPPORT is "unchecked" (currently all of them), do not restate or summarise their Islamic content as fact: say "no supporting passage is available here", then point to where the user can read: the app lesson by its title (in the Path tab) and its SLM IDs and book/chapter as given in the lesson's SOURCES. Add NO Islamic teaching, interpretation or advice of your own, and use no other books, websites or general knowledge for Islamic content. The FURTHER READING list gives titles only: you have not seen what those works say, so you may only name one with its ID as where to read ("See HD05, Riyâzü's-Sâlihîn") without stating its content. If no lesson is related, say plainly "no supporting passage is available here" and suggest asking a qualified scholar; never claim the whole library lacks it. An SLM ID in a lesson's sources does not by itself show that the passage supports the point. Mark every Islamic reference "unverified" (no person has checked it against the edition yet); give hadith numbers only as "common numbering, unchecked".
+- PERSONAL CERTAINTY: never state or imply that the user's own act of worship, intention, repentance or faith is valid, invalid, accepted or rejected. Give the sourced general text or "no supporting passage is available here", and point to a scholar for their personal case. This holds in every answer, however the question is asked.
+- If the user asks again for reassurance that their own worship is valid or accepted, begin your reply with the exact marker [[PAUSE]] (it is removed before display), then answer within the rules above. Do not use the marker for ordinary information questions.
+- Non-religious topics (learning, habits, psychology, health, design, code) may use any knowledge; keep them clearly separate from religious content.
+- You are not a shaykh, murshid or mufti. Never assess the user's spiritual state, sincerity, rank, or whether they are or will become a walī. Never mention streaks, points or scores. No personal fatwas: for a binding ruling on their own case, send them to a qualified scholar (local imam or müftülük).
+- School: when the sources give school positions, present the user's school first (${sch}), name the school, and say when others differ; never present one school's view as consensus.
+- If the user mentions self-harm, abuse, or a medical or mental-health crisis, respond with care and urge them to contact their local emergency number (112 in Türkiye and the EU) or a professional now.
+- Keep answers under 180 words and warm. For non-religious help you may end with one small doable step; for Islamic questions do not add steps beyond what the sources say.
+- Reply in ${lang()==="tr"?"Turkish":"English"}.
+User: life stage ${p.stage}; school ${sch}. Today's lesson: "${T(l.t)}".
+
+APP LESSON TEXTS (supporting material, with SLM IDs):
+${lessons}
+
+FURTHER READING (SLM ID | title | author; titles only, content not provided):
+${further}`;
+}
+async function ask(text){
+  text=(text||"").trim(); if(!text||ctl||!S.profile.guideOk) return;
+  if(SAMPLE===undefined) await requestSample();
+  if(!SAMPLE){ renderGuide(); return; }
+  draftQ="";
+  chat.push({role:"user",content:text}); chat.push({role:"assistant",content:T(UI.thinking),pending:true});
+  renderGuide();
+  const btn=$("#askBtn"); ctl=new AbortController();
+  if(btn){btn.textContent=T(UI.stop);btn.type="button";btn.onclick=()=>ctl&&ctl.abort();}
+  const box=()=>{const msgs=$("#chatBox").querySelectorAll(".msg");return msgs[msgs.length-1];};
+  const turns=[{role:"user",content:rules()},...chat.filter(m=>!m.pending).slice(-10).map(m=>({role:m.role,content:m.raw||m.content}))];
+  const last=chat[chat.length-1];
+  try{
+    const {text:ans}=await SAMPLE(turns,{cache:false,signal:ctl.signal,onText:({text})=>{last.content=stripMark(text);const b=box();if(b)b.textContent=last.content;}});
+    if(/\[\[PAUSE\]\]/.test(ans)){ pauseCount++; if(pauseCount>=2) pauseShown=true; }
+    last.content=stripMark(ans); last.tags=tagIds(last.content); delete last.pending;
+  }catch(e){
+    const keep=e&&e.text; delete last.pending;
+    if(e&&e.code==="not_granted"){ chat.pop(); chat.pop(); draftQ=text; SAMPLE=null; renderGuide(); toast(T(UI.guideDenied)); ctl=null; return; }
+    if(!keep && !(e&&e.code==="cancelled")){ chat.pop(); chat.pop(); draftQ=text; ctl=null; renderGuide(); toast(T(UI.guideErr)); return; }
+    last.content = keep ? stripMark(keep) : "…";
+  }
+  ctl=null; renderGuide();
+}
+
+function keepPractice(ref){
+  const ps=S.profile.practices;
+  if(ps.some(x=>practiceKey(x)===practiceKey(ref))) return;
+  if(ps.length>=3){ toast(T(UI.full)); return; }
+  ps.push(ref); save("profile"); renderToday(); toast(T(UI.saved));
+}
+
+/* sheets (modal dialogs) */
+let lastFocus=null;
+function openSheet(html,labelId,focusSel){
+  if(!$("#sheet")) lastFocus=document.activeElement;
+  $("#sheetHost").innerHTML = `<div class="sheet" id="sheet"><div class="panel stack" role="dialog" aria-modal="true" aria-labelledby="${labelId}" tabindex="-1">${html}</div></div>`;
+  document.querySelector(".wrap").inert=true; document.querySelector(".tabs").inert=true;
+  const f = (focusSel && $(focusSel)) || $("#sheet .panel h2") && $("#sheet .panel");
+  if(f) f.focus();
+}
+function closeSheet(){
+  if(!$("#sheet")) return;
+  $("#sheetHost").innerHTML="";
+  document.querySelector(".wrap").inert=false; document.querySelector(".tabs").inert=false;
+  if(lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus=null;
+}
+function trapTab(e){
+  const sh=$("#sheet"); if(!sh||e.key!=="Tab") return;
+  const f=[...sh.querySelectorAll('button,input,select,textarea,a[href],summary,[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent!==null);
+  if(!f.length) return;
+  const first=f[0], last=f[f.length-1];
+  if(e.shiftKey && (document.activeElement===first||document.activeElement===sh.querySelector(".panel"))){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+}
+
+function openWeek(prefill){
+  const s0=addDays(todayKey(),-6);
+  const entries=Object.entries(S.progress.practice).filter(([d,v])=>d>=s0&&v);
+  const triedL=[...new Set(entries.filter(([d,v])=>v.lesson&&!v.kept&&LBY[v.lesson]).map(([d,v])=>v.lesson))];
+  const triedK=[...new Set(entries.filter(([d,v])=>v.kept).map(([d,v])=>v.kept))].map(k=>S.profile.practices.find(x=>practiceKey(x)===k)).filter(Boolean);
+  const studied=Object.entries(S.progress.studied).filter(([id,d])=>d>=s0&&LBY[id]).map(([id])=>LBY[id]);
+  openSheet(`
+    <div class="row" style="justify-content:space-between"><h2 id="wkT">${T(UI.weekTitle)}</h2><button class="iconbtn" type="button" data-close>${T(UI.close)}</button></div>
+    <p class="small">${T(UI.weekIntro)}</p>
+    ${triedL.length||triedK.length?triedL.map(id=>{const x=LBY[id],k=isKept(id);return `<div class="card flat stack"><p>${esc(T(x.p))}</p><div class="seg">${k?`<span class="small muted">✓ ${T(UI.kept)}</span>`:`<button type="button" class="chip" data-wkeep="${id}">${T(UI.wKeep)}</button>`}<button type="button" class="chip" data-wlight="${id}">${T(UI.wLight)}</button><button type="button" class="chip" data-wrepl="${id}">${T(UI.wReplace)}</button></div></div>`;}).join("")+triedK.map(x=>`<div class="card flat"><p>${esc(practiceText(x))}</p><span class="small muted">✓ ${T(UI.kept)}</span></div>`).join(""):`<p class="small muted">${T(UI.weekNone)}</p>`}
+    <p class="small muted" id="wlightMsg"${prefill?"":" hidden"}>${T(UI.wLightMsg)}</p>
+    <div class="field"><label for="ownIn">${T(UI.addOwn)}</label><div class="composer"><input type="text" id="ownIn" placeholder="${esc(T(UI.addOwnPh))}" value="${esc(prefill||"")}"><button class="btn" type="button" id="ownAdd">${T(UI.add)}</button></div></div>
+    ${S.profile.practices.length?`<div class="stack"><h3>${T(UI.myPractices)}</h3><ul class="plist">${S.profile.practices.map((x,i)=>`<li><span>${esc(practiceText(x))}</span><button type="button" class="iconbtn" data-unkeep="${i}">${T(UI.remove)}</button></li>`).join("")}</ul></div>`:""}
+    ${studied.length?`<div class="stack"><h3>${T(UI.studiedWeek)}</h3><ul class="principles small">${studied.map(x=>`<li>${esc(T(x.t))}</li>`).join("")}</ul></div>`:""}`,"wkT",prefill?"#ownIn":null);
+}
+
+/* settings sheet */
+let wipeArmed=false;
+function openSettings(){
+  const p=S.profile;
+  const opt=(obj,val)=>Object.keys(obj).map(k=>`<option value="${k}"${k===String(val)?" selected":""}>${esc(T(obj[k]))}</option>`).join("");
+  openSheet(`
+    <div class="row" style="justify-content:space-between"><h2 id="setT">${T(UI.profile)}</h2><button class="iconbtn" type="button" data-close>${T(UI.close)}</button></div>
+    <div class="field"><label for="fName">${T(UI.name)}</label><input type="text" id="fName" value="${esc(p.name)}"></div>
+    <div class="field"><label for="fStage">${T(UI.stage)}</label><select id="fStage">${opt(UI.stages,p.stage)}</select><span class="small muted">${T(UI.stageNote)}</span></div>
+    <div class="field"><label for="fMad">${T(UI.madhhab)}</label><select id="fMad">${opt(UI.madh,p.madhhab)}</select></div>
+    <div class="field"><span class="lab" id="focusLab">${T(UI.focus)}</span><div class="seg" id="fFocus" role="group" aria-labelledby="focusLab">${Object.keys(DOMAINS).map(k=>`<button type="button" class="chip" data-focus="${k}" aria-pressed="${p.focus.includes(k)}">${T(DOMAINS[k])}</button>`).join("")}</div></div>
+    ${EMBED?"":`<label class="row small"><input type="checkbox" id="fPray"${p.prayerCheck?" checked":""}> ${T(UI.prayerToggle)}</label>`}
+    <label class="row small"><input type="checkbox" id="fLight"${p.lighter?" checked":""}> ${T(UI.lighter)}</label>
+    <label class="row small"><input type="checkbox" id="fRecall"${p.recall?" checked":""}> ${T(UI.recallToggle)}</label>
+    ${anyEligible()?"":`<p class="small muted">${T(UI.recallNone)}</p>`}
+    <label class="row small"><input type="checkbox" id="fStart"${p.startHere?" checked":""}> ${T(UI.startHereToggle)}</label>
+    ${p.langManual?`<button class="btn quiet" type="button" id="langDevice">${T(UI.langDevice)}</button>`:""}
+    <button class="btn" type="button" id="saveProfile">${T(UI.save)}</button>
+    <details class="card flat"><summary><b>${T(UI.aboutPilot)}</b></summary><ul class="principles small" style="margin-top:8px">${UI.introList[lang()].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
+    <div class="card flat stack"><h3>${T(UI.principlesT)}</h3><ul class="principles small">${UI.principles[lang()].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+    <div class="card flat stack"><h3>${T(UI.dataT)}</h3><p class="small">${T(UI.dataNote)}</p>${mode==="db"?"":`<p class="small muted">${T(UI.storeLocal)}</p>`}
+      <div class="row"><button class="btn quiet" type="button" id="exportBtn">${T(UI.exportBtn)}</button><button class="btn quiet" type="button" id="importBtn">${T(UI.importBtn)}</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
+      <button class="linkbtn" type="button" id="pasteToggle">${T(UI.pasteBtn)}</button>
+      <div class="stack" id="pasteBox" hidden><label class="visually-hidden" for="pasteIn">JSON</label><textarea id="pasteIn"></textarea><button class="btn quiet" type="button" id="pasteGo">${T(UI.pasteGo)}</button></div>
+      <div class="row"><button class="btn quiet" type="button" id="wipeBtn">${T(UI.wipeBtn)}</button></div>
+    </div>
+    <p class="small muted">${T(UI.pilot)}</p>`,"setT");
+  wipeArmed=false;
+}
+
+/* conflict */
+function openConflict(){
+  const c=pendingConflict; if(!c) return;
+  const sum=d=>[d.reflect,d.shukr,d.niyet].filter(x=>(x||"").trim()).map(x=>esc(x.slice(0,120))).join(" · ")||"—";
+  openSheet(`<h2 id="cfT">${T(UI.conflictTitle)}</h2><p class="small">${T(UI.conflictText)}</p>
+    <div class="card flat"><b>${T(UI.keepLocal)}</b><p class="small">${sum(c.local)}</p></div>
+    <div class="card flat"><b>${T(UI.keepCloud)}</b><p class="small">${sum(c.cloud)}</p></div>
+    <div class="row"><button class="btn" type="button" id="cfLocal">${T(UI.keepLocal)}</button><button class="btn quiet" type="button" id="cfCloud">${T(UI.keepCloud)}</button><button class="linkbtn" type="button" data-close>${T(UI.conflictLater)}</button></div>`,"cfT");
+}
+
+/* ---------- render / events ---------- */
+function renderTabs(){
+  const ic={
+    today:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>`,
+    path:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/><rect x="6" y="6" width="12" height="12" transform="rotate(45 12 12)"/></svg>`,
+    lib:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16 5l3.5-1 3 15.5-3.5 1z"/></svg>`,
+    guide:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>`};
+  $("#tabs").innerHTML = ["today","path","lib","guide"].map(k=>`<button type="button" data-tab="${k}"${tab===k?' aria-current="page"':""}>${ic[k]}<span>${T(UI.tabs[k])}</span></button>`).join("");
+}
+function focusKey(el){
+  if(!el||el===document.body) return null;
+  if(el.id) return "#"+CSS.escape(el.id);
+  for(const a of el.getAttributeNames()) if(a.startsWith("data-")) return `[${a}="${CSS.escape(el.getAttribute(a))}"]`;
+  return null;
+}
+function withFocus(fn){
+  const k=focusKey(document.activeElement); fn();
+  if(k && !$("#sheet")){ const n=document.querySelector(k); if(n) n.focus({preventScroll:true}); }
+}
+function renderAll(){
+  withFocus(()=>{
+    document.documentElement.lang=lang();
+    $("#appSub").textContent=T(UI.sub);
+    $("#langBtn").textContent=lang()==="tr"?"EN":"TR";
+    $("#langBtn").setAttribute("aria-label",lang()==="tr"?"Switch to English":"Türkçeye geç");
+    $("#setBtn").textContent=T(UI.settings);
+    renderTabs();
+    for(const k of ["today","path","lib","guide"]){ $("#v-"+k).hidden = (k!==tab); }
+    if(tab==="today") renderToday(); else if(tab==="path") renderPath(); else if(tab==="lib") renderLib(); else { renderGuide(); if(S.profile.guideOk) requestSample(); }
+  });
+}
+const rerenderToday = () => withFocus(renderToday);
+
+document.addEventListener("click", e=>{
+  const el=e.target.closest("button,[data-open]"); if(!el) return;
+  if(el.dataset.tab){ tab=el.dataset.tab; renderAll(); window.scrollTo(0,0); return; }
+  if(el.id==="langBtn"){ S.profile.lang = lang()==="tr"?"en":"tr"; S.profile.langManual=true; save("profile"); renderAll(); return; }
+  if(el.id==="langDevice"){ S.profile.langManual=false; S.profile.lang=deviceLang(); save("profile"); closeSheet(); renderAll(); return; }
+  if(el.id==="setBtn" || el.dataset.open==="settings"){ openSettings(); return; }
+  if(el.hasAttribute("data-close")){ closeSheet(); return; }
+  if(el.id==="introOk"){ S.profile.introSeen=true; save("profile"); renderAll(); return; }
+  if(el.dataset.pr){ const k=el.dataset.pr; M.prayers[k]=!M.prayers[k]; marksSave(); rerenderToday(); return; }
+  if(el.id==="naBtn"){ M.na=!M.na; if(M.na) M.prayers={}; marksSave(); rerenderToday(); return; }
+  if(el.id==="istBtn"){ M.istighfar=!M.istighfar; marksSave(); rerenderToday(); return; }
+  if(el.id==="studyBtn"){ S.progress.studied[S.today.lesson]=todayKey(); save("progress"); rerenderToday(); return; }
+  if(el.id==="unstudyBtn"){ delete S.progress.studied[S.today.lesson]; save("progress"); rerenderToday(); const b=$("#studyBtn"); if(b) b.focus(); return; }
+  if(el.id==="otherBtn"){ tab="path"; renderAll(); window.scrollTo(0,0); return; }
+  if(el.dataset.lesson){ if(S.today.lesson!==el.dataset.lesson){ S.today.lesson=el.dataset.lesson; if(!S.today.kept){ S.today.commit=false; S.today.result=null; S.today.instead=""; syncPractice(); } save(["today","progress"]); } tab="today"; renderAll(); window.scrollTo(0,0); return; }
+  if(el.id==="commitBtn"){ S.today.commit=!S.today.commit; if(!S.today.commit) S.today.result=null; syncPractice(); save(["today","progress"]); rerenderToday(); return; }
+  if(el.dataset.res){ S.today.result = S.today.result===el.dataset.res?null:el.dataset.res; syncPractice(); save(["today","progress"]); rerenderToday(); return; }
+  if(el.dataset.usekept){ S.today.kept=el.dataset.usekept; S.today.commit=false; S.today.result=null; syncPractice(); save(["today","progress"]); rerenderToday(); const b=$("#commitBtn"); if(b) b.focus(); return; }
+  if(el.id==="unuseKept"){ S.today.kept=null; S.today.commit=false; S.today.result=null; syncPractice(); save(["today","progress"]); rerenderToday(); return; }
+  if(el.id==="smallerBtn"){ openWeek(actText(currentLesson())); return; }
+  if(el.id==="keepBtn"){ keepPractice({id:currentLesson().id}); return; }
+  if(el.dataset.unkeep!==undefined){ const x=S.profile.practices.splice(+el.dataset.unkeep,1)[0]; if(x && S.today.kept===practiceKey(x)){ S.today.kept=null; S.today.commit=false; S.today.result=null; syncPractice(); save("today"); } save("profile"); renderToday(); if($("#sheet")) openWeek(); return; }
+  if(el.id==="weekBtn"){ openWeek(); return; }
+  if(el.dataset.wkeep){ keepPractice({id:el.dataset.wkeep}); openWeek(); return; }
+  if(el.dataset.wlight){ const n=$("#wlightMsg"); if(n){ n.hidden=false; } const f=$("#ownIn"); if(f){ f.value=T(LBY[el.dataset.wlight].p); f.focus(); } return; }
+  if(el.dataset.wrepl){ const i=S.profile.practices.findIndex(x=>x.id===el.dataset.wrepl); if(i>=0){ S.profile.practices.splice(i,1); save("profile"); } closeSheet(); tab="path"; renderAll(); window.scrollTo(0,0); return; }
+  if(el.id==="ownAdd"){ addOwn(); return; }
+  if(el.dataset.opennote){ openNotes[el.dataset.opennote]=true; renderToday(); const f=$(el.dataset.opennote==="reflect"?"#reflectTa":"#shukrIn"); if(f) f.focus(); return; }
+  if(el.dataset.ref){ const [lid,i]=el.dataset.ref.split(":"); const n=$("#ri-"+lid+"-"+i); if(n){ n.hidden=!n.hidden; el.setAttribute("aria-expanded",String(!n.hidden)); } return; }
+  if(el.id==="recShow"){ recallShown=true; rerenderToday(); const b=$("#recSkip"); if(b) b.focus(); return; }
+  if(el.id==="recSkip"){ S.today.recallDone=true; recallShown=false; save("today"); renderToday(); return; }
+  if(el.id==="recOff"){ S.profile.recall=false; S.today.recallDone=true; save(["profile","today"]); renderToday(); return; }
+  if(el.id==="discOk"){ S.profile.guideOk=true; save("profile"); renderGuide(); requestSample(); return; }
+  if(el.id==="sampleRetry"){ requestSample(); return; }
+  if(el.id==="pauseOk"){ pauseDismissed=true; renderGuide(); return; }
+  if(el.dataset.book){ const id=el.dataset.book, cur=S.progress.books[id]||"none"; const nx={none:"reading",reading:"done",done:"none"}[cur]; if(nx==="none") delete S.progress.books[id]; else S.progress.books[id]=nx; save("progress"); withFocus(renderLib); return; }
+  if(el.id==="libAllBtn"){ libAll=true; renderLib(); return; }
+  if(el.id==="libShortBtn"){ libAll=false; renderLib(); return; }
+  if(el.dataset.sug!==undefined){ ask(suggestions()[+el.dataset.sug]); return; }
+  if(el.dataset.focus){ el.setAttribute("aria-pressed", el.getAttribute("aria-pressed")!=="true"); return; }
+  if(el.id==="saveProfile"){
+    const p=S.profile, oldFocus=(p.focus||[]).join();
+    p.name=$("#fName").value.trim(); p.stage=$("#fStage").value; p.madhhab=$("#fMad").value;
+    p.focus=[...document.querySelectorAll('#fFocus .chip[aria-pressed="true"]')].map(c=>c.dataset.focus);
+    if($("#fPray")) p.prayerCheck=$("#fPray").checked; p.lighter=$("#fLight").checked; p.recall=$("#fRecall").checked; p.startHere=$("#fStart").checked;
+    p.onboarded=true; p.introSeen=true;
+    // a new focus only re-suggests a lesson nobody has started working with today
+    if(p.focus.join()!==oldFocus && !S.progress.studied[S.today.lesson] && !S.today.commit && !S.today.reflect.trim()){ S.today.lesson=null; }
+    save(["profile","today"]); closeSheet(); renderAll(); toast(T(UI.saved)); return;
+  }
+  if(el.id==="exportBtn"){ exportData(); return; }
+  if(el.id==="importBtn"){ const f=$("#importFile"); if(f) f.click(); return; }
+  if(el.id==="pasteToggle"){ const b=$("#pasteBox"); if(b){ b.hidden=!b.hidden; if(!b.hidden) $("#pasteIn").focus(); } return; }
+  if(el.id==="pasteGo"){ previewImport($("#pasteIn").value); return; }
+  if(el.id==="impGo"){ applyImport(); return; }
+  if(el.id==="impCancel"){ pendingImport=null; closeSheet(); return; }
+  if(el.id==="cfOpen"){ openConflict(); return; }
+  if(el.id==="cfLocal"||el.id==="cfCloud"){ const c=pendingConflict; pendingConflict=null; if(c){ S.today = {...(el.id==="cfLocal"?c.local:c.cloud)}; save("today"); } closeSheet(); renderAll(); return; }
+  if(el.id==="wipeBtn"){
+    if(!wipeArmed){ wipeArmed=true; el.textContent=T(UI.wipeConfirm); return; }
+    wipeAll(); return;
+  }
+});
+document.addEventListener("click", e=>{ if(e.target.id==="sheet") closeSheet(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && $("#sheet")) closeSheet(); trapTab(e); });
+document.addEventListener("input", e=>{
+  const id=e.target.id;
+  if(id==="reflectTa"){ S.today.reflect=e.target.value; save("today"); }
+  else if(id==="shukrIn"){ S.today.shukr=e.target.value; save("today"); }
+  else if(id==="niyetIn"){ S.today.niyet=e.target.value; save("today"); }
+  else if(id==="insteadIn"){ S.today.instead=e.target.value; save("today"); }
+  else if(id==="cueIn"){ const k=e.target.dataset.cue, v=e.target.value; if(v.trim()) S.profile.cues[k]=v; else delete S.profile.cues[k]; save("profile"); }
+  else if(id==="askIn"){ draftQ=e.target.value; }
+});
+document.addEventListener("change", e=>{ if(e.target.id==="importFile"){ const f=e.target.files&&e.target.files[0]; if(!f) return; f.text().then(previewImport).catch(()=>toast(T(UI.impBad))); e.target.value=""; } });
+document.addEventListener("submit", e=>{ if(e.target.id==="askForm"){ e.preventDefault(); const v=$("#askIn").value; ask(v); } });
+document.addEventListener("keydown", e=>{
+  if(e.target.id==="askIn" && e.key==="Enter" && !e.shiftKey){ e.preventDefault(); ask(e.target.value); }
+  if(e.target.id==="ownIn" && e.key==="Enter"){ e.preventDefault(); addOwn(); }
+});
+function addOwn(){ const v=($("#ownIn").value||"").trim(); if(v){ keepPractice({text:v}); openWeek(); } }
+
+function syncPractice(){
+  const d=S.today;
+  if(d.commit) S.progress.practice[d.date]={lesson:d.kept?null:d.lesson,kept:d.kept||null,result:d.result};
+  else delete S.progress.practice[d.date];
+}
+
+/* export / import / delete */
+async function collectAll(){
+  const out={app:"Kurb Yolu",version:2,exported:new Date().toISOString(),profile:S.profile,progress:S.progress,days:{...S.days},incomplete:false};
+  if(hasContent(S.today)||S.today.lesson) out.days[S.today.date]=S.today;
+  if(pendingConflict) out.unresolved={local:pendingConflict.local,stored:pendingConflict.cloud};
+  if(mode==="db"){
+    try{ (await listAll()).forEach(d=>{ if(d.id.startsWith("d-")){ const k=d.id.slice(2); const v=scrub({...d.data()}); if(!out.days[k] || (v.updatedAt||0)>(out.days[k].updatedAt||0)) out.days[k]=v; } }); }
+    catch(e){ out.incomplete=true; }
+  }
+  return out;
+}
+async function exportData(){
+  const obj=await collectAll(); const data=JSON.stringify(obj,null,2); const name="kurb-yolu-"+todayKey()+".json";
+  try{
+    const dl = runtimePresent() ? await window.claude.use("downloads") : null;
+    if(dl){ await dl.save({filename:name,data}); toast(T(UI.dlDone)); return; }
+  }catch(e){ if(e&&e.code==="cancelled") return; }
+  try{
+    const url=URL.createObjectURL(new Blob([data],{type:"application/json"}));
+    const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000); toast(T(UI.dlDone));
+  }catch(e){
+    openSheet(`<h2 id="dlT">${T(UI.exportBtn)}</h2><p class="small">${T(UI.dlManual)}</p><textarea readonly style="min-height:220px">${esc(data)}</textarea><button class="btn quiet" type="button" data-close>${T(UI.close)}</button>`,"dlT");
+  }
+}
+let pendingImport=null;
+function previewImport(text){
+  let o=null; try{ o=JSON.parse(text); }catch(e){}
+  const ok = o && o.app==="Kurb Yolu" && o.profile && typeof o.profile==="object" && o.progress && typeof o.progress==="object";
+  if(!ok){ toast(T(UI.impBad)); return; }
+  const days={...(o.days||{})}; if(o.today && o.today.date) days[o.today.date]=days[o.today.date]||o.today;
+  for(const k of Object.keys(days)){ if(!/^\d{4}-\d{2}-\d{2}$/.test(k)||typeof days[k]!=="object") delete days[k]; else days[k]=normDay(days[k]); }
+  pendingImport={profile:normProfile(scrub({...o.profile})),progress:normProgress(o.progress),days};
+  const nS=Object.keys(pendingImport.progress.studied).length, nD=Object.keys(days).length, when=String(o.exported||"").slice(0,10)||"?";
+  openSheet(`<h2 id="impT">${T(UI.impTitle)}</h2><p class="small">${T(UI.impSummary)(nS,nD,esc(when))}</p><div class="row"><button class="btn" type="button" id="impGo">${T(UI.impGo)}</button><button class="btn quiet" type="button" id="impCancel">${T(UI.cancel)}</button></div>`,"impT","#impGo");
+}
+async function applyImport(){
+  const imp=pendingImport; pendingImport=null; if(!imp) return;
+  const backup={profile:S.profile,progress:S.progress,today:S.today,days:S.days};
+  if(!lsSet(BK,backup)){ closeSheet(); toast(T(UI.snapFail)); return; }
+  try{
+    const keepLang=S.profile.lang, man=S.profile.langManual;
+    S.profile={...imp.profile, lang:man?keepLang:imp.profile.lang, updatedAt:Date.now()};
+    S.progress={...imp.progress, updatedAt:Date.now()};
+    S.days={...imp.days}; const td=S.days[todayKey()]; delete S.days[todayKey()];
+    S.today = td ? {...td,updatedAt:Date.now()} : newDay();
+    if(mode==="db"){
+      await coll().doc("profile").set(S.profile); await coll().doc("progress").set(S.progress);
+      for(const [k,v] of Object.entries(S.days)) await coll().doc("d-"+k).set(v);
+      await coll().doc("d-"+S.today.date).set(S.today);
+    }
+    lsWrite(); try{localStorage.removeItem(BK);}catch(e){}
+    closeSheet(); renderAll(); toast(T(UI.impDone));
+  }catch(e){
+    S.profile=backup.profile; S.progress=backup.progress; S.today=backup.today; S.days=backup.days;
+    lsWrite(); if(mode==="db") save(["profile","progress","today"]);
+    closeSheet(); renderAll(); toast(T(UI.impFail));
+  }
+}
+async function wipeAll(){
+  wiping=true; clearTimeout(saveTimer); saveTimer=null; dirty.clear();
+  const keep=S.profile.lang, man=S.profile.langManual;
+  let failed=0, unlisted=false;
+  if(mode==="db"){
+    let ids=null;
+    try{ ids=(await listAll()).map(d=>d.id); }catch(e){ unlisted=true; }
+    if(!ids) ids=["profile","progress","d-"+S.today.date,...Object.keys(S.days).map(k=>"d-"+k)];
+    const res=await Promise.allSettled(ids.map(id=>coll().doc(id).delete()));
+    failed=res.filter(r=>r.status==="rejected").length;
+  }
+  lsDelPrefix(); pendingConflict=null;
+  S={profile:{...DEF_PROFILE,lang:keep,langManual:man},progress:DEF_PROGRESS(),today:newDay(),days:{}}; marksLoad(); cloudSeen=false; prevVisit=null;
+  closeSheet(); tab="today"; renderAll();
+  if(failed){ openSettings(); toast(T(UI.wipePartial)(failed)); wipeArmed=true; const b=$("#wipeBtn"); if(b) b.textContent=T(UI.wipeConfirm); }
+  else if(unlisted) toast(T(UI.wipeUnlisted));
+  else toast(T(UI.wiped));
+  // nothing is written again until the next user action
+  const resume=()=>{ wiping=false; document.removeEventListener("pointerdown",resume,true); document.removeEventListener("keydown",resume,true); };
+  document.addEventListener("pointerdown",resume,true); document.addEventListener("keydown",resume,true);
+}
+
+/* ---------- boot ---------- */
+const deviceLang = () => ((navigator.languages&&navigator.languages[0])||navigator.language||"").toLowerCase().startsWith("tr")?"tr":"en";
+applyLoaded(lsGet(LSK));
+marksLoad();
+if(!S.profile.langManual) S.profile.lang = deviceLang();
+prevVisit = S.profile.lastVisit;
+S.profile.lastVisit = todayKey(); lsWrite();
+renderAll();
+connect();
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"){ lsWrite(); flush(); } else { checkDay(); checkStale(); } });
+window.addEventListener("focus",()=>checkDay());
+window.addEventListener("pagehide",()=>{ lsWrite(); flush(); });
+// Mevazin writes this key when it pulls from your account or signs you out; pick that up
+// instead of writing the old copy back over it.
+window.addEventListener("storage",e=>{
+  if(e.key!==LSK && e.key!==null) return;
+  const keep=S.profile.lang, man=S.profile.langManual;
+  if(e.newValue==null){ pendingConflict=null; S={profile:{...DEF_PROFILE,lang:keep,langManual:man},progress:DEF_PROGRESS(),today:newDay(),days:{}}; marksLoad(); prevVisit=null; }
+  else { try{ applyLoaded(JSON.parse(e.newValue)); }catch(_){ return; } if(!S.profile.langManual) S.profile.lang=deviceLang(); }
+  renderAll();
+});
+setInterval(checkDay,60000);
+})();
+</script>
+
+</body>
+</html>

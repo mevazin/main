@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f0d0e">
+<title>Canlı Piyasa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--plane:#0f0d0e;--card:#1d1a1b;--card-2:#262223;--ink:#f5f2f3;--ink-2:#c7bfc2;--ink-muted:#8f8689;--ring:rgba(255,255,255,.10);
+  --accent:#45b8a8;--accent-soft:#10302c;--display:"Sora",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--plane);color:var(--ink);font-family:var(--body)}
+.wrap{max-width:1280px;margin:0 auto;padding:12px 16px 32px}
+.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:10px 14px;display:flex;gap:12px;align-items:center}
+.mark{width:32px;height:32px;border-radius:9px;background:var(--accent);color:var(--card);display:grid;place-items:center;font:700 18px var(--display);flex:none}
+h1{font:700 17px var(--display);letter-spacing:-.02em;margin:0}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
+.live i{width:7px;height:7px;border-radius:50%;background:#4cc46c;box-shadow:0 0 0 3px rgba(76,196,108,.18)}
+.clock{margin-left:auto;font:500 12px var(--mono);color:var(--ink-muted);text-align:right}
+.tape{margin-top:12px;height:52px;border-radius:12px;overflow:hidden;border:1px solid var(--ring);background:var(--card)}
+h2{font:600 13px var(--display);letter-spacing:.02em;color:var(--ink-2);margin:20px 4px 8px;text-transform:uppercase}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--card);border:1px solid var(--ring);border-radius:14px;height:150px;overflow:hidden;padding:6px}
+.card{background:var(--card);border:1px solid var(--ring);border-radius:16px;overflow:hidden}
+.tabs{display:flex;gap:6px;padding:10px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--ring)}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border:1px solid var(--ring);background:var(--card-2);color:var(--ink-2);font:500 13px var(--body);padding:7px 12px;border-radius:999px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#0f0d0e}
+.chart{height:520px}
+.overview{height:520px}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.bist{padding:14px 16px}.bist p{margin:0 0 12px;font-size:13px;color:var(--ink-2);line-height:1.5}
+.apps{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.app{display:block;background:var(--card-2);border:1px solid var(--ring);border-radius:12px;padding:12px;text-decoration:none}
+.app b{display:block;color:var(--ink);font:600 14px var(--display)}.app span{font-size:12px;color:var(--ink-2)}
+.note{font-size:13px;color:var(--ink-2);line-height:1.55;padding:14px 16px}
+.note b{color:var(--ink)}
+a{color:var(--accent)}
+tv-ticker-tape,tv-mini-chart{display:block;width:100%;height:100%}
+:root{--tv-widget-background-color:transparent;--tv-widget-text-color:#f5f2f3;--tv-widget-price-text-color:#f5f2f3;--tv-widget-scales-font-color:#8f8689;
+  --tv-widget-accent-color:#45b8a8;--tv-widget-font-family:"IBM Plex Sans",system-ui,sans-serif;
+  --tv-widget-positive-color:#4cc46c;--tv-widget-positive-area-top-color:rgba(76,196,108,.28);--tv-widget-positive-area-bottom-color:rgba(76,196,108,0);
+  --tv-widget-negative-color:#f07a6e;--tv-widget-negative-area-top-color:rgba(240,122,110,.28);--tv-widget-negative-area-bottom-color:rgba(240,122,110,0);
+  --tv-widget-popup-background-color:#262223;--tv-widget-tooltip-background-color:#262223;--tv-widget-tooltip-text-color:#f5f2f3}
+.tradingview-widget-container,.tradingview-widget-container__widget{height:100%;width:100%}
+.tradingview-widget-copyright{display:none}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+@media (max-width:760px){
+  .wrap{padding:8px 10px 28px}
+  .tiles{grid-template-columns:repeat(2,1fr);gap:8px}
+  .chart{height:430px}.overview{height:460px}
+  .live span{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="appbar">
+    <div class="mark">P</div>
+    <div><h1>Canlı Piyasa</h1><div class="live"><i></i><span>Anlık fiyatlar</span></div></div>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <div class="tape" id="w-tape"></div>
+
+  <h2>Hızlı bakış</h2>
+  <div class="tiles" id="tiles"></div>
+
+  <h2>Borsa İstanbul</h2>
+  <section class="card bist">
+    <p>BIST verisini sitelerde ücretsiz ve canlı göstermek lisans gereği mümkün değil; widget'larda 15 dakika gecikmeli ya da hiç yok. Canlı BIST için ücretsiz anlık veri veren bir uygulama kullanın:</p>
+    <div class="apps">
+      <a class="app" href="https://www.isbank.com.tr/iscep-mobil-borsa" target="_blank" rel="noopener"><b>İşCep Mobil Borsa</b><span>İş Bankası müşterisine anlık BIST, 0 TL</span></a>
+      <a class="app" href="https://apps.apple.com/app/id1554268946" target="_blank" rel="noopener"><b>Midas</b><span>Herkese ücretsiz canlı BIST (hesap açarak)</span></a>
+    </div>
+  </section>
+
+  <h2>Grafik</h2>
+  <section class="card">
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="chart" id="w-chart"></div>
+  </section>
+
+  <h2>Not</h2>
+      <section class="card note">
+        <b>Gecikme:</b> TradingView'e göre bu sayfadaki döviz, altın, Brent (CFD) ve kripto verileri gerçek zamanlıdır; saniye cinsinden ölçülmedi. Gram altın ons × kurdan hesaplanan ICE fiyatıdır, Kapalıçarşı fiyatı değildir. Brent, vadeli ICE fiyatı değil OANDA CFD fiyatıdır.<br><br>
+        <b>Kaynak:</b> Fiyatlar ve grafikler <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a> tarafından sağlanır. Yatırım tavsiyesi değildir.<br><br>
+        <b>Tarihsel analiz:</b> <a href="https://claude.ai/artifact/3KXNnrFm87PQPjMjEsTVi9" target="_blank" rel="noopener">Piyasa Verileri panosu</a>
+      </section>
+</div>
+<script>
+(function(){
+  const BASE = {colorTheme:"dark", isTransparent:true, locale:"tr"};
+  function tv(host, name, cfg){
+    host.innerHTML = "";
+    const box = document.createElement("div"); box.className = "tradingview-widget-container";
+    const inner = document.createElement("div"); inner.className = "tradingview-widget-container__widget";
+    box.appendChild(inner);
+    const s = document.createElement("script");
+    s.type = "text/javascript"; s.async = true;
+    s.src = "https://s3.tradingview.com/external-embedding/embed-widget-" + name + ".js";
+    s.text = JSON.stringify(cfg);
+    box.appendChild(s);
+    host.appendChild(box);
+  }
+  const SYMS = [
+    {s:"FX_IDC:USDTRY", t:"USD/TRY"},
+    {s:"FX_IDC:EURTRY", t:"EUR/TRY"},
+    {s:"OANDA:XAUUSD",  t:"Altın ons"},
+    {s:"FX_IDC:XAUTRYG", t:"Gram altın"},
+    {s:"OANDA:BCOUSD",  t:"Brent"},
+    {s:"BINANCE:BTCUSDT", t:"Bitcoin"}
+  ];
+
+  function wc(name){
+    const add = loc => { const sc = document.createElement("script"); sc.type = "module";
+      sc.src = "https://www.tradingview-widget.com/w/" + loc + "/tv-" + name + ".js";
+      if (loc !== "en") sc.onerror = () => add("en");
+      document.head.appendChild(sc); };
+    add("tr");
+  }
+  const TAPE = SYMS.concat([{s:"FX:EURUSD",t:"EUR/USD"},{s:"OANDA:XAGUSD",t:"Gümüş"},{s:"BINANCE:ETHUSDT",t:"Ethereum"}]);
+  const tape = document.createElement("tv-ticker-tape");
+  tape.setAttribute("symbols", TAPE.map(x => x.s).join(","));
+  tape.setAttribute("theme", "dark"); tape.setAttribute("transparent", ""); tape.setAttribute("item-size", "compact");
+  document.getElementById("w-tape").appendChild(tape);
+  wc("ticker-tape");
+
+  const tiles = document.getElementById("tiles");
+  SYMS.forEach(x => {
+    const d = document.createElement("div"); d.className = "tile"; tiles.appendChild(d);
+    const m = document.createElement("tv-mini-chart");
+    m.setAttribute("symbol", x.s); m.setAttribute("theme", "dark"); m.setAttribute("transparent", "");
+    d.appendChild(m);
+  });
+  wc("mini-chart");
+
+  const chartHost = document.getElementById("w-chart"), tabs = document.getElementById("tabs");
+  function chart(sym){
+    tv(chartHost, "advanced-chart", {
+      autosize:true, symbol:sym, interval:"15", timezone:"Europe/Istanbul", theme:"dark", style:"1", locale:"tr",
+      backgroundColor:"#1d1a1b", gridColor:"rgba(255,255,255,0.06)",
+      hide_side_toolbar:true, hide_top_toolbar:false, allow_symbol_change:true, save_image:false, calendar:false,
+      withdateranges:true, support_host:"https://www.tradingview.com"
+    });
+    [...tabs.children].forEach(b => b.setAttribute("aria-selected", b.dataset.s === sym));
+  }
+  SYMS.forEach(x => {
+    const b = document.createElement("button"); b.role = "tab"; b.dataset.s = x.s; b.textContent = x.t;
+    b.onclick = () => chart(x.s); tabs.appendChild(b);
+  });
+  chart(SYMS[0].s);
+
+
+  const c = document.getElementById("clock");
+  const tick = () => c.textContent = new Date().toLocaleString("tr-TR",{timeZone:"Europe/Istanbul",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}).replace(" ", " ");
+  tick(); setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
